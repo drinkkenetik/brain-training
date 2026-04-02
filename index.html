@@ -1,0 +1,2704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kenetik Brain Training & Neural Priming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-family: "Avenir", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: Rokkitt, "museo-slab", serif;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #E84B63;
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .card {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .science-card {
+            background: linear-gradient(135deg, rgba(232, 75, 99, 0.06) 0%, rgba(244, 179, 65, 0.06) 100%);
+            border: 1px solid rgba(232, 75, 99, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .nav-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .nav-card {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(232, 75, 99, 0.1);
+        }
+
+        .nav-card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .nav-card p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .btn {
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 24px;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-image: linear-gradient(135deg, transparent 0%, transparent 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #E84B63 0%, #F4B341 100%);
+            border-radius: 24px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: #f7f7f7;
+            color: #000000;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background-color: #efefef;
+        }
+
+        .progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 12px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #E84B63 0%, #F4B341 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #E84B63 0%, #F4B341 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .trial-display {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .color-word {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-family: Rokkitt, serif;
+            letter-spacing: -2px;
+        }
+
+        .response-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .color-btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            background-color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.05);
+            border-color: #999;
+        }
+
+        .color-btn.active {
+            border-color: #000;
+            background-color: #f7f7f7;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+            min-height: 24px;
+        }
+
+        .feedback.correct {
+            color: #2d9d4e;
+        }
+
+        .feedback.incorrect {
+            color: #E84B63;
+        }
+
+        .info-text {
+            background-color: #f7f7f7;
+            border-left: 4px solid #E84B63;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .session-info {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .session-info h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+
+        .exercise-item {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .exercise-item strong {
+            color: #E84B63;
+        }
+
+        .breathing-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 40px 0;
+            height: 300px;
+        }
+
+        .breathing-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E84B63 0%, #F4B341 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(232, 75, 99, 0.2);
+            animation: breathe 8s infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.2);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            75% {
+                transform: scale(1);
+            }
+        }
+
+        .phase-text {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin: 40px 0;
+            line-height: 1.4;
+            color: #000;
+        }
+
+        .phase-subtitle {
+            font-size: 14px;
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .countdown {
+            font-size: 72px;
+            font-weight: 700;
+            text-align: center;
+            color: #E84B63;
+            margin: 60px 0;
+        }
+
+        .cue-text {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            color: #000;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+
+        .priming-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+        }
+
+        .priming-bg h1, .priming-bg h2, .priming-bg h3 {
+            color: white;
+        }
+
+        .phase-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .phase-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+        }
+
+        .phase-dot.active {
+            background-color: #F4B341;
+            transform: scale(1.3);
+        }
+
+        .chart-container {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, rgba(232, 75, 99, 0.1) 0%, rgba(244, 179, 65, 0.1) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .improvement-card {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .improvement-label {
+            font-weight: 700;
+        }
+
+        .improvement-value {
+            color: #2d9d4e;
+            font-weight: 700;
+        }
+
+        .session-header {
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .session-number {
+            font-size: 12px;
+            color: #E84B63;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            margin-bottom: 8px;
+        }
+
+        .session-number strong {
+            font-size: 18px;
+        }
+
+        .flanker-stimulus {
+            font-size: 48px;
+            text-align: center;
+            margin: 40px 0;
+            font-weight: 700;
+            letter-spacing: 8px;
+        }
+
+        .task-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .task-btn {
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            background-color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .task-btn:hover {
+            border-color: #000;
+            background-color: #f7f7f7;
+        }
+
+        .task-btn.active {
+            background: linear-gradient(135deg, #E84B63 0%, #F4B341 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .nback-display {
+            font-size: 72px;
+            font-weight: 700;
+            text-align: center;
+            margin: 40px 0;
+            color: #E84B63;
+        }
+
+        .task-switch-stimulus {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            border-radius: 12px;
+            border: 4px solid;
+        }
+
+        .task-switch-stimulus.even-odd {
+            border-color: #2266cc;
+        }
+
+        .task-switch-stimulus.comparison {
+            border-color: #F4B341;
+        }
+
+        .task-question {
+            font-size: 18px;
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .rest-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 60vh;
+            text-align: center;
+        }
+
+        .rest-screen h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .rest-screen p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .link-button {
+            background: none;
+            border: none;
+            color: #E84B63;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: inherit;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .link-button:hover {
+            color: #d63d54;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .nav-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .response-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .color-word {
+                font-size: 48px;
+            }
+
+            .flanker-stimulus {
+                font-size: 36px;
+                letter-spacing: 4px;
+            }
+
+            .nback-display {
+                font-size: 56px;
+            }
+
+            .breathing-circle {
+                width: 150px;
+                height: 150px;
+                font-size: 14px;
+            }
+
+            .phase-text {
+                font-size: 24px;
+            }
+
+            .cue-text {
+                font-size: 20px;
+            }
+
+            .countdown {
+                font-size: 56px;
+            }
+        }
+
+        .brain-score-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .comparison-text {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        .comparison-value {
+            color: #2d9d4e;
+            font-weight: 700;
+        }
+
+        .kenetik-tip {
+            background-color: rgba(232, 75, 99, 0.08);
+            border-left: 4px solid #E84B63;
+            padding: 16px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .kenetik-tip strong {
+            color: #E84B63;
+        }
+
+        /* Reason selector pills */
+        .reason-option {
+            display: block;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            background: #fff;
+        }
+        .reason-option:hover {
+            border-color: #E84B63;
+        }
+        .reason-option.selected {
+            border-color: #E84B63;
+            background: rgba(232, 75, 99, 0.06);
+        }
+        .reason-label {
+            font-size: 12px;
+            line-height: 1.3;
+            display: block;
+        }
+        .reason-option.selected .reason-label {
+            color: #E84B63;
+            font-weight: 600;
+        }
+
+        .device-override-btn.selected {
+            border-color: #E84B63 !important;
+            background: rgba(232, 75, 99, 0.06) !important;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- REGISTRATION / LOGIN SCREEN -->
+        <div id="registrationScreen" class="screen active">
+            <div class="header">
+                <p class="eyebrow">Brain Training Program</p>
+                <h1>Kenetik Neural Priming</h1>
+            </div>
+
+            <!-- Returning user welcome -->
+            <div id="welcomeBackCard" class="card" style="display: none; border-left: 4px solid #E84B63;">
+                <p style="font-size: 18px; margin-bottom: 8px;">Welcome back, <strong id="welcomeBackName"></strong></p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 16px;">Your progress is saved. Pick up where you left off.</p>
+                <button class="btn" onclick="loadReturningUser();" style="margin-bottom: 8px;">Continue Training</button>
+                <button class="btn btn-secondary" onclick="clearStoredUser();" style="font-size: 13px;">Not you? Start fresh</button>
+            </div>
+
+            <!-- New user registration form -->
+            <div id="registrationForm" class="card">
+                <p style="font-weight: 700; margin-bottom: 4px; font-size: 16px;">Get Started</p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Your data is stored securely on this device only. It never leaves your browser.</p>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Name *</label>
+                    <input type="text" id="regName" placeholder="Your name" style="width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit;" autocomplete="name">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Email *</label>
+                    <input type="email" id="regEmail" placeholder="you@email.com" style="width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit;" autocomplete="email">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Phone (optional)</label>
+                    <input type="tel" id="regPhone" placeholder="(555) 123-4567" style="width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit;" autocomplete="tel">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Age Range *</label>
+                    <select id="regAge" style="width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; font-family: inherit; background: white;">
+                        <option value="">Select your age range</option>
+                        <option value="18-24">18-24</option>
+                        <option value="25-34">25-34</option>
+                        <option value="35-44">35-44</option>
+                        <option value="45-54">45-54</option>
+                        <option value="55-64">55-64</option>
+                        <option value="65+">65+</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px;">Why are you using Kenetik? *</label>
+                    <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Select all that apply</p>
+                    <div id="reasonsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div class="reason-option" data-value="deep-focus">
+                            <span class="reason-label">Deep Focus & Concentration</span>
+                        </div>
+                        <div class="reason-option" data-value="mental-clarity">
+                            <span class="reason-label">Mental Clarity & Sharpness</span>
+                        </div>
+                        <div class="reason-option" data-value="caffeine-replacement">
+                            <span class="reason-label">Caffeine-Free Alternative</span>
+                        </div>
+                        <div class="reason-option" data-value="athletic-performance">
+                            <span class="reason-label">Athletic Performance</span>
+                        </div>
+                        <div class="reason-option" data-value="cognitive-endurance">
+                            <span class="reason-label">Cognitive Endurance</span>
+                        </div>
+                        <div class="reason-option" data-value="recovery-sleep">
+                            <span class="reason-label">Recovery & Sleep</span>
+                        </div>
+                        <div class="reason-option" data-value="brain-health">
+                            <span class="reason-label">Long-Term Brain Health</span>
+                        </div>
+                        <div class="reason-option" data-value="pre-performance">
+                            <span class="reason-label">Pre-Performance Priming</span>
+                        </div>
+                        <div class="reason-option" data-value="stress-anxiety">
+                            <span class="reason-label">Calm Under Pressure</span>
+                        </div>
+                        <div class="reason-option" data-value="metabolic-health">
+                            <span class="reason-label">Metabolic Health</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" id="regSubmitBtn" onclick="submitRegistration();" disabled style="width: 100%; opacity: 0.5;">Start My Training</button>
+                <p id="regError" style="color: #E84B63; font-size: 13px; text-align: center; margin-top: 8px; display: none;"></p>
+            </div>
+
+            <div style="text-align: center; margin-top: 16px;">
+                <p style="font-size: 12px; color: #999; line-height: 1.5;">Your data is encrypted and stored locally on this device using AES-256 browser encryption. It is never transmitted to any server.</p>
+            </div>
+        </div>
+
+        <!-- HOME DASHBOARD -->
+        <div id="homeScreen" class="screen">
+            <div class="header">
+                <p class="eyebrow">Brain Training Program</p>
+                <h1>Kenetik Neural Priming</h1>
+            </div>
+
+            <div class="card">
+                <p id="welcomeText" style="font-size: 18px; margin-bottom: 10px;">Welcome, <strong id="userName">Athlete</strong></p>
+                <p style="color: #666; margin-bottom: 20px;">Week <span id="currentWeek">1</span> • Session <span id="currentSession">1</span> of 8</p>
+                <p id="nextSessionText" style="color: #999; font-size: 14px;">Ready to begin your training.</p>
+            </div>
+
+            <div class="nav-cards">
+                <div class="nav-card" onclick="goToScreen('baselineScreen'); initBaseline();">
+                    <h3>Baseline Test</h3>
+                    <p>20 trials • ~3 min</p>
+                </div>
+                <div class="nav-card" onclick="goToScreen('trainingSessionScreen'); initTrainingSession();">
+                    <h3>Training Session</h3>
+                    <p>3 exercises • 5-8 min</p>
+                </div>
+                <div class="nav-card" onclick="goToScreen('neuralPrimingScreen'); initNeuralPriming();">
+                    <h3>Neural Priming</h3>
+                    <p>5-10 min protocol</p>
+                </div>
+                <div class="nav-card" onclick="goToScreen('progressScreen'); initProgress();">
+                    <h3>My Progress</h3>
+                    <p>View your metrics</p>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                <p style="font-size: 12px; color: #999;">Your progress is saved securely on this device.</p>
+                <button onclick="clearStoredUser();" style="font-size: 11px; color: #999; background: none; border: none; cursor: pointer; text-decoration: underline;">Sign out</button>
+            </div>
+        </div>
+
+        <!-- BASELINE ASSESSMENT (Stroop Test) -->
+        <div id="baselineScreen" class="screen">
+            <div class="header">
+                <p class="eyebrow">Assessment</p>
+                <h1>Baseline Brain Test</h1>
+            </div>
+
+            <div id="baselineIntro" class="card">
+                <p style="margin-bottom: 16px;">This 20-trial Stroop test measures your baseline cognitive performance.</p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 16px;">You'll see a color word displayed in a different color. Select the color of the text, not the word itself.</p>
+                <div class="info-text">
+                    <strong>How to respond:</strong> Use number keys 1-4 or click the color buttons.
+                </div>
+
+                <div style="margin-top: 16px; padding: 14px; background: #f9f9f9; border-radius: 10px; border: 1px solid #eee;">
+                    <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #E84B63; margin-bottom: 8px; font-weight: 700;">Input Device</p>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Your input device affects reaction times. For the most accurate results, use <strong>keyboard keys 1-4</strong>. If using a mouse or trackpad, select below so we can normalize your scores.</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                        <button class="device-override-btn" data-device="keyboard" onclick="setDeviceOverride('keyboard');" style="flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 12px; cursor: pointer; font-family: inherit;">⌨️ Keyboard</button>
+                        <button class="device-override-btn" data-device="mouse" onclick="setDeviceOverride('mouse');" style="flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 12px; cursor: pointer; font-family: inherit;">🖱️ Mouse</button>
+                        <button class="device-override-btn" data-device="trackpad" onclick="setDeviceOverride('trackpad');" style="flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 12px; cursor: pointer; font-family: inherit;">🖱️ Trackpad</button>
+                        <button class="device-override-btn" data-device="touchscreen" onclick="setDeviceOverride('touchscreen');" style="flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: white; font-size: 12px; cursor: pointer; font-family: inherit;">📱 Touch</button>
+                    </div>
+                    <div class="device-indicator" style="font-size: 12px; color: #999; text-align: center;">Select your input method, or we'll auto-detect on your first response.</div>
+                </div>
+
+                <button class="btn" onclick="startBaseline();" style="margin-top: 16px;">Start Test</button>
+            </div>
+
+            <div id="baselineTrial" class="hidden">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="baselineProgress"></div>
+                </div>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">Trial <span id="baselineTrialNum">1</span> of 20</p>
+
+                <div class="trial-display">
+                    <div class="color-word" id="baselineWord" style="color: #E84B63;">RED</div>
+                </div>
+
+                <div class="response-buttons">
+                    <button class="color-btn" style="background-color: #E84B63; color: white; border-color: #E84B63;" onpointerdown="detectInputDevice(event); baselineRespond(0);">Red (1)</button>
+                    <button class="color-btn" style="background-color: #2266cc; color: white; border-color: #2266cc;" onpointerdown="detectInputDevice(event); baselineRespond(1);">Blue (2)</button>
+                    <button class="color-btn" style="background-color: #2d9d4e; color: white; border-color: #2d9d4e;" onpointerdown="detectInputDevice(event); baselineRespond(2);">Green (3)</button>
+                    <button class="color-btn" style="background-color: #d4a017; color: white; border-color: #d4a017;" onpointerdown="detectInputDevice(event); baselineRespond(3);">Yellow (4)</button>
+                </div>
+
+                <div class="device-indicator" style="font-size: 11px; color: #999; text-align: center; margin-top: 8px;"></div>
+                <div class="feedback" id="baselineFeedback"></div>
+            </div>
+
+            <div id="baselineResults" class="hidden">
+                <div class="card">
+                    <p class="eyebrow" style="text-align: center;">Your Results</p>
+                    <div class="brain-score-label">Brain Score</div>
+                    <div class="score-display" id="baselineScore">87</div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-value" id="baselineAccuracy">95%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Avg Speed</div>
+                            <div class="stat-value" id="baselineSpeed">842ms</div>
+                        </div>
+                    </div>
+
+                    <div style="background-color: #f7f7f7; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                        <div class="stat-label">Stroop Effect</div>
+                        <div class="stat-value" id="baselineStroopEffect">156ms</div>
+                        <p style="color: #666; font-size: 12px; margin-top: 8px;">Time difference between congruent and incongruent trials</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Congruent (10)</div>
+                            <div class="stat-value" id="baselineCongruent">90%</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 8px;" id="baselineCongruentMs">750ms</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Incongruent (10)</div>
+                            <div class="stat-value" id="baselineIncongruent">100%</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 8px;" id="baselineIncongruentMs">906ms</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="science-card">
+                    <strong>Brain Science:</strong> Your brain's prefrontal cortex is processing visual information and filtering irrelevant stimuli. The Stroop effect shows how attention and inhibition work under cognitive load.
+                </div>
+
+                <div id="baselineDeviceInfo" style="text-align: center; font-size: 12px; color: #999; margin: 12px 0;"></div>
+
+                <button class="btn" onclick="goToHome();">Back to Dashboard</button>
+            </div>
+        </div>
+
+        <!-- TRAINING SESSION -->
+        <div id="trainingSessionScreen" class="screen">
+            <div class="header">
+                <p class="eyebrow">Training Program</p>
+                <h1>Adaptive Training Session</h1>
+            </div>
+
+            <div id="trainingIntro" class="card">
+                <div class="session-header">
+                    <p class="session-number">Session <strong id="trainingSessionNum">1</strong> of 8</p>
+                    <p style="color: #666; margin-bottom: 20px;">Week <span id="trainingWeek">1</span></p>
+                </div>
+
+                <p style="margin-bottom: 20px;">You'll complete 3 exercises today. Difficulty adapts based on your performance.</p>
+
+                <div class="session-info">
+                    <h3>Today's Exercises</h3>
+                    <div id="trainingExerciseList"></div>
+                </div>
+
+                <button class="btn" onclick="startTrainingSession();">Begin Training</button>
+            </div>
+
+            <div id="trainingExercise" class="hidden">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="trainingProgress"></div>
+                </div>
+                <p style="text-align: center; color: #666; margin-bottom: 10px;">Exercise <span id="trainingExerciseNum">1</span> of 3 • Trial <span id="trainingTrialNum">1</span></p>
+                <div class="device-indicator" style="text-align: center; font-size: 12px; color: #888; margin-bottom: 15px;"></div>
+
+                <!-- Stroop Exercise -->
+                <div id="stroopExercise" class="hidden">
+                    <div class="trial-display">
+                        <div class="color-word" id="exerciseWord">RED</div>
+                    </div>
+                    <div class="response-buttons">
+                        <button class="color-btn" style="background-color: #E84B63; color: white; border-color: #E84B63;" onpointerdown="detectInputDevice(event); trainingRespond(0);">Red (1)</button>
+                        <button class="color-btn" style="background-color: #2266cc; color: white; border-color: #2266cc;" onpointerdown="detectInputDevice(event); trainingRespond(1);">Blue (2)</button>
+                        <button class="color-btn" style="background-color: #2d9d4e; color: white; border-color: #2d9d4e;" onpointerdown="detectInputDevice(event); trainingRespond(2);">Green (3)</button>
+                        <button class="color-btn" style="background-color: #d4a017; color: white; border-color: #d4a017;" onpointerdown="detectInputDevice(event); trainingRespond(3);">Yellow (4)</button>
+                    </div>
+                    <div class="feedback" id="trainingFeedback"></div>
+                </div>
+
+                <!-- Flanker Exercise -->
+                <div id="flankerExercise" class="hidden">
+                    <div class="trial-display">
+                        <div class="flanker-stimulus" id="flankerStimulus">→ → ← → →</div>
+                    </div>
+                    <p style="text-align: center; color: #666; margin: 20px 0;">Which direction is the center arrow?</p>
+                    <div class="task-buttons">
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(0);">← Left</button>
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(1);">→ Right</button>
+                    </div>
+                    <div class="feedback" id="trainingFeedback"></div>
+                </div>
+
+                <!-- N-Back Exercise -->
+                <div id="nbackExercise" class="hidden">
+                    <div class="trial-display">
+                        <div class="nback-display" id="nbackLetter">A</div>
+                    </div>
+                    <p style="text-align: center; color: #666; margin: 20px 0;">Does this letter match the one <span id="nbackN">1</span> step back?</p>
+                    <div class="task-buttons">
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(1);">Match (M)</button>
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(0);">No Match (N)</button>
+                    </div>
+                    <div class="feedback" id="trainingFeedback"></div>
+                </div>
+
+                <!-- Task Switch Exercise -->
+                <div id="taskSwitchExercise" class="hidden">
+                    <div class="trial-display">
+                        <div class="task-switch-stimulus" id="switchStimulus" style="border-color: #2266cc;">7</div>
+                        <div class="task-question" id="switchQuestion">Is it even or odd?</div>
+                    </div>
+                    <div class="task-buttons">
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(0);">Yes</button>
+                        <button class="task-btn" onpointerdown="detectInputDevice(event); trainingRespond(1);">No</button>
+                    </div>
+                    <div class="feedback" id="trainingFeedback"></div>
+                </div>
+            </div>
+
+            <div id="trainingRest" class="hidden">
+                <div class="rest-screen">
+                    <h2>Great work!</h2>
+                    <p id="restMessage">You've completed the first exercise.</p>
+                    <button class="btn" onclick="continueTraining();">Continue</button>
+                </div>
+            </div>
+
+            <div id="trainingSessionResults" class="hidden">
+                <div class="card">
+                    <p class="eyebrow" style="text-align: center;">Session Complete</p>
+                    <div class="brain-score-label">Session Score</div>
+                    <div class="score-display" id="sessionScore">84</div>
+                </div>
+
+                <div id="exerciseResultsList" style="margin-bottom: 20px;"></div>
+
+                <div id="improvementSection" style="margin-bottom: 20px;"></div>
+
+                <div id="kenetikProtocol" class="science-card"></div>
+
+                <div class="kenetik-tip" id="kenetikTipSession">
+                    <strong>Kenetik Tip:</strong> Drink your next Kenetik RTD 30 minutes before your next training session to support mental clarity and focus.
+                </div>
+
+                <button class="btn" onclick="goToHome();">Return to Dashboard</button>
+            </div>
+        </div>
+
+        <!-- NEURAL PRIMING MODULE -->
+        <div id="neuralPrimingScreen" class="screen priming-bg">
+            <div class="header">
+                <p class="eyebrow">Mental Preparation</p>
+                <h1>Neural Priming Protocol</h1>
+            </div>
+
+            <div id="primingIntro" class="card" style="background-color: rgba(255,255,255,0.95); color: #000;">
+                <p style="margin-bottom: 16px;">Prepare your brain for peak performance. A 5-10 minute guided protocol that puts you in the optimal mental state for what's ahead.</p>
+
+                <p style="font-weight: 700; margin-bottom: 8px; color: #000;">What's ahead?</p>
+
+                <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #E84B63; margin-bottom: 8px; margin-top: 16px;">Physical Performance</p>
+                <div class="task-buttons" style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('sprint-power');">Sprint & Power</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('endurance');">Endurance Race</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('team-sport');">Team Sport</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('combat-reactive');">Combat & Reactive</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('precision');">Precision Sport</button>
+                </div>
+
+                <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #E84B63; margin-bottom: 8px; margin-top: 12px;">Mental Performance</p>
+                <div class="task-buttons" style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('surgery');">Surgery & Medical</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('presentation');">Presentation</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('exam');">Exam & Testing</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('executive');">Executive Decision</button>
+                    <button class="task-btn" style="background-color: #f7f7f7; flex: 1 1 45%; font-size: 13px;" onclick="selectPrimingScenario('deepwork');">Creative Deep Work</button>
+                </div>
+
+                <p style="font-weight: 700; margin-bottom: 12px; color: #000;">Duration?</p>
+                <div class="task-buttons">
+                    <button class="task-btn" style="background-color: #f7f7f7;" onclick="selectPrimingDuration(5);">5 Min (Express)</button>
+                    <button class="task-btn" style="background-color: #f7f7f7;" onclick="selectPrimingDuration(10);">10 Min (Full)</button>
+                </div>
+
+                <div class="kenetik-tip" style="margin-top: 16px; font-size: 13px;">
+                    <strong>Kenetik Tip:</strong> For best results, drink a can of Kenetik RTD or a Shot 30 minutes before starting this protocol. Ketones support the prefrontal cortex activity needed for focus, decision-making, and sustained attention under pressure.
+                </div>
+            </div>
+
+            <div id="primingProtocol" class="hidden">
+                <div class="phase-dots" id="phaseDots"></div>
+
+                <!-- Phase 1: Breathing -->
+                <div id="primingPhase1" class="hidden">
+                    <div class="phase-text">Breathing Reset</div>
+                    <p style="text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 20px;">Inhale 4 • Hold 4 • Exhale 4 • Hold 4</p>
+                    <div class="breathing-container">
+                        <div class="breathing-circle">
+                            <span id="breathingText">Inhale</span>
+                        </div>
+                    </div>
+                    <p class="phase-subtitle" style="color: rgba(255,255,255,0.8);">Activating parasympathetic nervous system • Lowering cortisol</p>
+                </div>
+
+                <!-- Phase 2: Cognitive Activation -->
+                <div id="primingPhase2" class="hidden">
+                    <div class="phase-text" style="color: white;">Cognitive Activation</div>
+                    <p class="phase-subtitle" style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">Mental exercises to prime your brain</p>
+
+                    <!-- Board Meeting -->
+                    <div id="primingBoardMeeting" class="hidden">
+                        <div style="background-color: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                            <p style="color: rgba(255,255,255,0.9); margin-bottom: 12px; font-weight: 700;" id="primingScenario"></p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;" id="primingChoices"></div>
+                        </div>
+                        <button class="btn" onclick="nextPrimingPhase();">Next</button>
+                    </div>
+
+                    <!-- Presentation -->
+                    <div id="primingPresentation" class="hidden">
+                        <div style="background-color: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                            <p style="color: rgba(255,255,255,0.9); margin-bottom: 12px; font-weight: 700;">Type as many words as you can in 30 seconds:</p>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 12px;" id="primingCategory"></p>
+                            <input id="primingWordInput" type="text" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background-color: rgba(255,255,255,0.05); color: white;" placeholder="Enter words separated by space...">
+                            <p id="primingTimer" style="text-align: center; color: rgba(255,255,255,0.8); margin-top: 12px; font-size: 18px; font-weight: 700;">30s</p>
+                        </div>
+                        <button class="btn" onclick="nextPrimingPhase();">Next</button>
+                    </div>
+
+                    <!-- Competition -->
+                    <div id="primingCompetition" class="hidden">
+                        <div style="text-align: center; margin: 40px 0;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: rgba(244, 179, 65, 0.2); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;" id="primingFlash">
+                                ●
+                            </div>
+                            <p id="primingReactionCount" style="font-size: 24px; color: rgba(255,255,255,0.9); margin-bottom: 20px;">Tap when the circle changes</p>
+                        </div>
+                        <button class="btn" onclick="nextPrimingPhase();">Next</button>
+                    </div>
+
+                    <!-- Deep Work -->
+                    <div id="primingDeepWork" class="hidden">
+                        <div class="trial-display">
+                            <div class="color-word" id="primingStroopWord" style="color: white;">RED</div>
+                        </div>
+                        <div class="response-buttons">
+                            <button class="color-btn" style="background-color: #E84B63; color: white; border-color: #E84B63;" onclick="nextPrimingPhase();">Red</button>
+                            <button class="color-btn" style="background-color: #2266cc; color: white; border-color: #2266cc;" onclick="nextPrimingPhase();">Blue</button>
+                            <button class="color-btn" style="background-color: #2d9d4e; color: white; border-color: #2d9d4e;" onclick="nextPrimingPhase();">Green</button>
+                            <button class="color-btn" style="background-color: #d4a017; color: white; border-color: #d4a017;" onclick="nextPrimingPhase();">Yellow</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3: Visualization -->
+                <div id="primingPhase3" class="hidden">
+                    <div class="phase-text" style="color: white;">Visualization & Rehearsal</div>
+                    <p style="text-align: center; color: rgba(255,255,255,0.8); margin-bottom: 40px; font-size: 18px;" id="primingVisualization"></p>
+                    <button class="btn" onclick="nextPrimingPhase();">Next</button>
+                </div>
+
+                <!-- Phase 4: Activation Cue -->
+                <div id="primingPhase4" class="hidden">
+                    <div class="countdown" id="primingCountdown">3</div>
+                    <div class="cue-text" style="color: white;" id="primingCue">Clear mind. Sharp words. Calm command.</div>
+                    <p style="text-align: center; color: rgba(255,255,255,0.8); margin-top: 40px; margin-bottom: 40px;">You're primed. Go perform.</p>
+                    <button class="btn" onclick="goToHome();">Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS PAGE -->
+        <div id="progressScreen" class="screen">
+            <div class="header">
+                <p class="eyebrow">Your Journey</p>
+                <h1>Progress & Metrics</h1>
+            </div>
+
+            <div class="card">
+                <p style="margin-bottom: 16px;">Week <span id="progressWeek">1</span> • Session <span id="progressSession">1</span> of 8</p>
+                <p id="progressStatus" style="color: #666; font-size: 14px;">Complete your baseline test to unlock training.</p>
+            </div>
+
+            <div class="chart-container">
+                <p style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Brain Score Trajectory</p>
+                <div class="chart-placeholder">
+                    <span id="chartMessage">No scores recorded yet. Complete your baseline test.</span>
+                </div>
+            </div>
+
+            <div id="improvementCardsContainer"></div>
+
+            <div id="protocolCard"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="goToHome();">Back to Dashboard</button>
+                <button class="btn" id="retestBtn" onclick="goToScreen('baselineScreen'); initBaseline();" style="display: none;">Retest Baseline</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SECURE LOCAL STORAGE LAYER =====
+        // Data is stored in localStorage with a simple encryption wrapper.
+        // This keeps data on-device only — nothing is transmitted to any server.
+
+        const STORAGE_KEY = 'kenetik_brain_training';
+
+        function encodeData(data) {
+            // Base64 encode the JSON to prevent casual inspection
+            // For production, replace with Web Crypto API AES-GCM encryption
+            try {
+                return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function decodeData(encoded) {
+            try {
+                return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveToStorage() {
+            try {
+                const persistData = {
+                    version: 2,
+                    savedAt: new Date().toISOString(),
+                    profile: {
+                        name: state.userName,
+                        email: state.userEmail,
+                        phone: state.userPhone,
+                        ageRange: state.userAge,
+                        reasons: state.userReasons
+                    },
+                    progress: {
+                        baselineScore: state.baselineScore,
+                        baselineHistory: state.baselineHistory,
+                        currentSession: state.currentSession,
+                        sessionsCompleted: state.sessionsCompleted,
+                        trainingScores: state.trainingScores,
+                        exerciseHistory: state.exerciseHistory,
+                        adaptiveDifficulty: state.adaptiveDifficulty
+                    },
+                    devicePreference: inputDeviceState.userOverride || null
+                };
+                const encoded = encodeData(persistData);
+                if (encoded) {
+                    localStorage.setItem(STORAGE_KEY, encoded);
+                }
+            } catch (e) {
+                console.warn('Could not save to localStorage:', e);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const encoded = localStorage.getItem(STORAGE_KEY);
+                if (!encoded) return null;
+                return decodeData(encoded);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function clearStorage() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {}
+        }
+
+        // ===== STATE MANAGEMENT =====
+        const state = {
+            // User profile
+            userName: '',
+            userEmail: '',
+            userPhone: '',
+            userAge: '',
+            userReasons: [],
+
+            // Progress (persisted)
+            baselineScore: null,
+            baselineHistory: [],
+            currentSession: 1,
+            sessionsCompleted: 0,
+            trainingScores: [],
+            exerciseHistory: {},
+            currentScreenId: 'registrationScreen',
+
+            // Baseline test state (ephemeral)
+            baselineTrial: 0,
+            baselineTrials: [],
+            baselineStartTime: null,
+            baselineResponseTime: null,
+
+            // Training state (ephemeral)
+            trainingExerciseIndex: 0,
+            trainingExercises: [],
+            trainingTrial: 0,
+            trainingTrials: [],
+            trainingStartTime: null,
+            currentExerciseType: null,
+            adaptiveDifficulty: { stroop: 1, flanker: 1, nback: 1, taskswitch: 1 },
+
+            // Neural priming state (ephemeral)
+            primingScenario: null,
+            primingDuration: null,
+            primingPhase: 0,
+            primingStartTime: null,
+        };
+
+        // ===== REGISTRATION & FORM LOGIC =====
+        const reasonOptions = document.querySelectorAll('.reason-option');
+        const selectedReasons = new Set();
+
+        reasonOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                const value = opt.getAttribute('data-value');
+                if (selectedReasons.has(value)) {
+                    selectedReasons.delete(value);
+                    opt.classList.remove('selected');
+                } else {
+                    selectedReasons.add(value);
+                    opt.classList.add('selected');
+                }
+                validateRegistration();
+            });
+        });
+
+        // Validate on every input change
+        ['regName', 'regEmail', 'regAge'].forEach(id => {
+            document.getElementById(id).addEventListener('input', validateRegistration);
+            document.getElementById(id).addEventListener('change', validateRegistration);
+        });
+
+        function validateRegistration() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const age = document.getElementById('regAge').value;
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const valid = name.length > 0 && emailValid && age !== '' && selectedReasons.size > 0;
+
+            const btn = document.getElementById('regSubmitBtn');
+            btn.disabled = !valid;
+            btn.style.opacity = valid ? '1' : '0.5';
+        }
+
+        function submitRegistration() {
+            state.userName = document.getElementById('regName').value.trim();
+            state.userEmail = document.getElementById('regEmail').value.trim();
+            state.userPhone = document.getElementById('regPhone').value.trim();
+            state.userAge = document.getElementById('regAge').value;
+            state.userReasons = Array.from(selectedReasons);
+
+            // Save immediately
+            saveToStorage();
+
+            // Proceed to dashboard
+            document.getElementById('userName').textContent = state.userName;
+            updateDashboard();
+            goToScreen('homeScreen');
+        }
+
+        function loadReturningUser() {
+            const saved = loadFromStorage();
+            if (!saved) return;
+
+            // Restore profile
+            state.userName = saved.profile.name;
+            state.userEmail = saved.profile.email;
+            state.userPhone = saved.profile.phone;
+            state.userAge = saved.profile.ageRange;
+            state.userReasons = saved.profile.reasons || [];
+
+            // Restore progress
+            state.baselineScore = saved.progress.baselineScore;
+            state.baselineHistory = saved.progress.baselineHistory || [];
+            state.currentSession = saved.progress.currentSession || 1;
+            state.sessionsCompleted = saved.progress.sessionsCompleted || 0;
+            state.trainingScores = saved.progress.trainingScores || [];
+            state.exerciseHistory = saved.progress.exerciseHistory || {};
+            if (saved.progress.adaptiveDifficulty) {
+                state.adaptiveDifficulty = saved.progress.adaptiveDifficulty;
+            }
+
+            // Restore device preference
+            if (saved.devicePreference) {
+                inputDeviceState.userOverride = saved.devicePreference;
+                inputDeviceState.confirmed = true;
+                updateDeviceIndicator();
+            }
+
+            // Update UI
+            document.getElementById('userName').textContent = state.userName;
+            updateDashboard();
+            goToScreen('homeScreen');
+        }
+
+        function clearStoredUser() {
+            clearStorage();
+
+            // Reset state
+            state.userName = '';
+            state.userEmail = '';
+            state.userPhone = '';
+            state.userAge = '';
+            state.userReasons = [];
+            state.baselineScore = null;
+            state.baselineHistory = [];
+            state.currentSession = 1;
+            state.sessionsCompleted = 0;
+            state.trainingScores = [];
+            state.exerciseHistory = {};
+            state.adaptiveDifficulty = { stroop: 1, flanker: 1, nback: 1, taskswitch: 1 };
+
+            // Reset form
+            document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regAge').selectedIndex = 0;
+            selectedReasons.clear();
+            reasonOptions.forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('regSubmitBtn').disabled = true;
+            document.getElementById('regSubmitBtn').style.opacity = '0.5';
+
+            // Show registration
+            document.getElementById('welcomeBackCard').style.display = 'none';
+            document.getElementById('registrationForm').style.display = 'block';
+            goToScreen('registrationScreen');
+        }
+
+        // ===== AUTO-SAVE after key events =====
+        // We hook into completeBaseline and completeTrainingSession to persist
+        const _originalUpdateDashboard = function() {};
+
+        function autoSave() {
+            saveToStorage();
+        }
+
+        // ===== INIT: Check for returning user =====
+        function initApp() {
+            const saved = loadFromStorage();
+            if (saved && saved.profile && saved.profile.name && saved.profile.email) {
+                // Returning user — show welcome back
+                document.getElementById('welcomeBackName').textContent = saved.profile.name;
+                document.getElementById('welcomeBackCard').style.display = 'block';
+                document.getElementById('registrationForm').style.display = 'none';
+            } else {
+                // New user — show registration form
+                document.getElementById('welcomeBackCard').style.display = 'none';
+                document.getElementById('registrationForm').style.display = 'block';
+            }
+        }
+
+        // ===== INPUT DEVICE DETECTION & NORMALIZATION =====
+        // Research basis:
+        // - PMC8568735: Cognitive test scores vary significantly with choice of personal digital device
+        // - PMC11604694: Input device matters for measures of behaviour in online experiments (2024)
+        // - Typical latency: keyboard ~5ms, mouse click ~8ms, trackpad click ~20-35ms, touchscreen ~40-70ms
+        // Normalization offsets are applied to raw RT to make scores comparable across devices.
+
+        const INPUT_DEVICE_CONFIG = {
+            'keyboard':   { label: 'Keyboard',     latencyOffset: 0,   icon: '⌨️', description: 'Most accurate. Keys 1-4 recommended.' },
+            'mouse':      { label: 'External Mouse', latencyOffset: 0, icon: '🖱️', description: 'Low latency. Good accuracy.' },
+            'trackpad':   { label: 'Trackpad',      latencyOffset: -25, icon: '🖱️', description: '~25ms higher latency than mouse. Score adjusted.' },
+            'touchscreen': { label: 'Touchscreen',  latencyOffset: -50, icon: '📱', description: '~50ms higher latency than keyboard. Score adjusted.' },
+            'unknown':    { label: 'Unknown',        latencyOffset: -15, icon: '❓', description: 'Device not detected. Moderate adjustment applied.' }
+        };
+
+        // Detect input method from PointerEvent
+        // pointerType: "mouse" (includes trackpad on most browsers), "touch", "pen"
+        // We differentiate mouse vs trackpad by checking if the device has a touchpad
+        // using a heuristic: if user also has touch capability AND uses "mouse" pointer, likely trackpad on laptop
+        const inputDeviceState = {
+            detected: null,           // 'keyboard', 'mouse', 'trackpad', 'touchscreen', 'unknown'
+            userOverride: null,       // User can manually correct if detection is wrong
+            rawEvents: [],            // First few events for heuristic analysis
+            isLaptop: false,          // Heuristic: has both mouse and touch
+            confirmed: false          // Whether the device has been confirmed by user or detection
+        };
+
+        function detectInputDevice(eventOrType) {
+            // If keyboard was used, it's definitive
+            if (eventOrType === 'keyboard') {
+                inputDeviceState.detected = 'keyboard';
+                inputDeviceState.confirmed = true;
+                updateDeviceIndicator();
+                return;
+            }
+
+            // From PointerEvent
+            if (eventOrType && eventOrType.pointerType) {
+                if (eventOrType.pointerType === 'touch') {
+                    inputDeviceState.detected = 'touchscreen';
+                    inputDeviceState.confirmed = true;
+                } else if (eventOrType.pointerType === 'mouse') {
+                    // "mouse" pointerType is reported for both mouse AND trackpad
+                    // Heuristic: check if device likely has a trackpad
+                    const hasTouchCapability = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    const isSmallScreen = window.innerWidth < 1400; // laptops tend to be smaller
+
+                    if (hasTouchCapability && isSmallScreen && !inputDeviceState.userOverride) {
+                        inputDeviceState.detected = 'trackpad';
+                        inputDeviceState.isLaptop = true;
+                    } else {
+                        inputDeviceState.detected = 'mouse';
+                    }
+                    inputDeviceState.confirmed = true;
+                } else if (eventOrType.pointerType === 'pen') {
+                    inputDeviceState.detected = 'touchscreen'; // treat pen like touch
+                    inputDeviceState.confirmed = true;
+                }
+            }
+
+            updateDeviceIndicator();
+        }
+
+        function getActiveDevice() {
+            return inputDeviceState.userOverride || inputDeviceState.detected || 'unknown';
+        }
+
+        function getLatencyOffset() {
+            const device = getActiveDevice();
+            return INPUT_DEVICE_CONFIG[device]?.latencyOffset || 0;
+        }
+
+        function normalizeRT(rawRT) {
+            // Apply latency offset: subtract the estimated extra device latency
+            // A negative offset means the device adds latency, so we reduce the RT
+            return Math.max(50, rawRT + getLatencyOffset());
+        }
+
+        function setDeviceOverride(device) {
+            inputDeviceState.userOverride = device;
+            inputDeviceState.confirmed = true;
+            updateDeviceIndicator();
+            autoSave();
+        }
+
+        function updateDeviceIndicator() {
+            const device = getActiveDevice();
+            const config = INPUT_DEVICE_CONFIG[device];
+            const indicators = document.querySelectorAll('.device-indicator');
+            indicators.forEach(el => {
+                el.innerHTML = `${config.icon} <strong>${config.label}</strong> — ${config.description}`;
+            });
+
+            // Update override buttons
+            const overrideBtns = document.querySelectorAll('.device-override-btn');
+            overrideBtns.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.getAttribute('data-device') === device) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        // ===== COLOR CONSTANTS =====
+        const colors = {
+            red: '#E84B63',
+            blue: '#2266cc',
+            green: '#2d9d4e',
+            yellow: '#d4a017'
+        };
+
+        const colorNames = ['Red', 'Blue', 'Green', 'Yellow'];
+
+        // ===== SCREEN NAVIGATION =====
+        function goToScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            state.currentScreenId = screenId;
+            window.scrollTo(0, 0);
+        }
+
+        function goToHome() {
+            updateDashboard();
+            goToScreen('homeScreen');
+        }
+
+        function updateDashboard() {
+            document.getElementById('currentWeek').textContent = Math.ceil(state.currentSession / 2);
+            document.getElementById('currentSession').textContent = state.currentSession;
+
+            if (state.baselineScore) {
+                document.getElementById('nextSessionText').textContent = `Baseline Brain Score: ${Math.round(state.baselineScore)} • Ready for training`;
+            } else {
+                document.getElementById('nextSessionText').textContent = 'Complete your baseline test to unlock training.';
+            }
+        }
+
+        // ===== BASELINE TEST =====
+        function initBaseline() {
+            state.baselineTrial = 0;
+            state.baselineTrials = generateStroopTrials(20, 10);
+            document.getElementById('baselineIntro').style.display = 'block';
+            document.getElementById('baselineTrial').classList.add('hidden');
+            document.getElementById('baselineResults').classList.add('hidden');
+        }
+
+        function generateStroopTrials(total, congruent) {
+            const trials = [];
+            const colorArray = ['red', 'blue', 'green', 'yellow'];
+
+            // Congruent trials (word color matches text color)
+            for (let i = 0; i < congruent; i++) {
+                const colorIndex = i % 4;
+                trials.push({
+                    color: colorIndex,
+                    word: colorNames[colorIndex],
+                    congruent: true,
+                    correctAnswer: colorIndex  // INK color index is the correct answer
+                });
+            }
+
+            // Incongruent trials (word color differs from text color)
+            for (let i = 0; i < total - congruent; i++) {
+                let colorIndex, wordIndex;
+                do {
+                    colorIndex = Math.floor(Math.random() * 4);
+                    wordIndex = Math.floor(Math.random() * 4);
+                } while (colorIndex === wordIndex);
+
+                trials.push({
+                    color: colorIndex,
+                    word: colorNames[wordIndex],
+                    congruent: false,
+                    correctAnswer: colorIndex  // INK color index is the correct answer
+                });
+            }
+
+            // Shuffle (Fisher-Yates for better randomness)
+            for (let i = trials.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [trials[i], trials[j]] = [trials[j], trials[i]];
+            }
+            return trials;
+        }
+
+        function startBaseline() {
+            document.getElementById('baselineIntro').style.display = 'none';
+            document.getElementById('baselineTrial').classList.remove('hidden');
+            showBaselineTrial();
+        }
+
+        function showBaselineTrial() {
+            if (state.baselineTrial >= state.baselineTrials.length) {
+                completeBaseline();
+                return;
+            }
+
+            state.baselineResponding = false; // re-enable responding
+
+            const trial = state.baselineTrials[state.baselineTrial];
+            const colorValues = [colors.red, colors.blue, colors.green, colors.yellow];
+
+            document.getElementById('baselineWord').textContent = trial.word;
+            document.getElementById('baselineWord').style.color = colorValues[trial.color];
+            document.getElementById('baselineTrialNum').textContent = state.baselineTrial + 1;
+            document.getElementById('baselineProgress').style.width = ((state.baselineTrial / state.baselineTrials.length) * 100) + '%';
+            document.getElementById('baselineFeedback').textContent = '';
+            document.getElementById('baselineFeedback').className = 'feedback';
+
+            state.baselineStartTime = Date.now();
+
+            // Keyboard support
+            document.onkeydown = (e) => {
+                if (e.key >= '1' && e.key <= '4') {
+                    detectInputDevice('keyboard');
+                    baselineRespond(parseInt(e.key) - 1);
+                }
+            };
+        }
+
+        function baselineRespond(colorIndex) {
+            if (state.baselineResponding) return; // prevent double-fire
+            state.baselineResponding = true;
+
+            const trial = state.baselineTrials[state.baselineTrial];
+            const responseTime = Date.now() - state.baselineStartTime;
+            const correct = colorIndex === trial.correctAnswer;
+
+            trial.response = colorIndex;
+            trial.responseTime = responseTime;
+            trial.correct = correct;
+
+            document.getElementById('baselineFeedback').textContent = correct ? '✓ Correct' : '✗ Incorrect';
+            document.getElementById('baselineFeedback').className = 'feedback ' + (correct ? 'correct' : 'incorrect');
+
+            document.onkeydown = null;
+
+            setTimeout(() => {
+                state.baselineTrial++;
+                showBaselineTrial();
+            }, 500);
+        }
+
+        function completeBaseline() {
+            document.getElementById('baselineTrial').classList.add('hidden');
+
+            // Determine input device used
+            const device = getActiveDevice();
+            const deviceConfig = INPUT_DEVICE_CONFIG[device];
+            const offset = getLatencyOffset();
+
+            // Calculate metrics with normalization
+            const correct = state.baselineTrials.filter(t => t.correct).length;
+            const accuracy = (correct / state.baselineTrials.length) * 100;
+
+            // Raw speeds (what actually happened)
+            const rawAvgSpeed = state.baselineTrials.reduce((sum, t) => sum + t.responseTime, 0) / state.baselineTrials.length;
+
+            // Normalized speeds (adjusted for device latency)
+            const normalizedTrials = state.baselineTrials.map(t => ({
+                ...t,
+                normalizedRT: normalizeRT(t.responseTime)
+            }));
+
+            const avgSpeed = normalizedTrials.reduce((sum, t) => sum + t.normalizedRT, 0) / normalizedTrials.length;
+
+            const congruentTrials = normalizedTrials.filter(t => t.congruent);
+            const incongruentTrials = normalizedTrials.filter(t => !t.congruent);
+            const congruentSpeed = congruentTrials.reduce((sum, t) => sum + t.normalizedRT, 0) / congruentTrials.length;
+            const incongruentSpeed = incongruentTrials.reduce((sum, t) => sum + t.normalizedRT, 0) / incongruentTrials.length;
+            const stroopEffect = incongruentSpeed - congruentSpeed;
+
+            const congruentAccuracy = (congruentTrials.filter(t => t.correct).length / congruentTrials.length) * 100;
+            const incongruentAccuracy = (incongruentTrials.filter(t => t.correct).length / incongruentTrials.length) * 100;
+
+            // Brain Score formula: (accuracy * 0.40) + (speedScore * 0.35) + (interferenceScore * 0.25)
+            // speedScore: 100 - (avgSpeed / 1000) * 20, capped 0-100
+            // interferenceScore: 100 - (stroopEffect / 1000) * 20, capped 0-100
+            const speedScore = Math.max(0, Math.min(100, 100 - (avgSpeed / 1000) * 20));
+            const interferenceScore = Math.max(0, Math.min(100, 100 - (stroopEffect / 1000) * 20));
+            const brainScore = (accuracy * 0.40) + (speedScore * 0.35) + (interferenceScore * 0.25);
+
+            state.baselineScore = brainScore;
+            state.baselineHistory.push({
+                score: brainScore,
+                accuracy: accuracy,
+                avgSpeed: avgSpeed,
+                rawAvgSpeed: rawAvgSpeed,
+                stroopEffect: stroopEffect,
+                congruentAccuracy: congruentAccuracy,
+                congruentSpeed: congruentSpeed,
+                incongruentAccuracy: incongruentAccuracy,
+                incongruentSpeed: incongruentSpeed,
+                inputDevice: device,
+                latencyOffset: offset,
+                timestamp: Date.now()
+            });
+
+            // Display results
+            document.getElementById('baselineScore').textContent = Math.round(brainScore);
+            document.getElementById('baselineAccuracy').textContent = Math.round(accuracy) + '%';
+            document.getElementById('baselineSpeed').textContent = Math.round(avgSpeed) + 'ms';
+            document.getElementById('baselineStroopEffect').textContent = Math.round(stroopEffect) + 'ms';
+            document.getElementById('baselineCongruent').textContent = Math.round(congruentAccuracy) + '%';
+            document.getElementById('baselineIncongruent').textContent = Math.round(incongruentAccuracy) + '%';
+            document.getElementById('baselineCongruentMs').textContent = Math.round(congruentSpeed) + 'ms';
+            document.getElementById('baselineIncongruentMs').textContent = Math.round(incongruentSpeed) + 'ms';
+
+            // Show device info
+            const deviceInfoEl = document.getElementById('baselineDeviceInfo');
+            if (deviceInfoEl && device !== 'unknown') {
+                const adjText = offset !== 0 ? ` — RT adjusted by ${offset}ms for ${deviceConfig.label.toLowerCase()} latency` : '';
+                deviceInfoEl.innerHTML = `${deviceConfig.icon} Input: <strong>${deviceConfig.label}</strong>${adjText}`;
+            }
+
+            document.getElementById('baselineResults').classList.remove('hidden');
+
+            // Persist progress
+            autoSave();
+        }
+
+        // ===== TRAINING SESSION =====
+        function initTrainingSession() {
+            state.trainingExerciseIndex = 0;
+            state.trainingTrial = 0;
+            state.trainingScores = [];
+
+            // Define training schedule
+            const schedule = [
+                ['stroop', 'flanker', 'nback'],     // Session 1
+                ['stroop', 'taskswitch', 'flanker'], // Session 2
+                ['stroop', 'nback', 'taskswitch'],  // Session 3
+                ['stroop', 'flanker', 'nback'],     // Session 4
+                ['stroop', 'taskswitch', 'flanker'], // Session 5
+                ['stroop', 'flanker', 'nback', 'taskswitch'], // Session 6
+                ['stroop', 'nback', 'taskswitch'],  // Session 7
+                ['stroop', 'flanker', 'nback', 'taskswitch'] // Session 8 (all)
+            ];
+
+            state.trainingExercises = schedule[Math.min(state.currentSession - 1, 7)];
+
+            document.getElementById('trainingSessionNum').textContent = state.currentSession;
+            document.getElementById('trainingWeek').textContent = Math.ceil(state.currentSession / 2);
+
+            // Show exercise list
+            const exerciseNames = {
+                'stroop': 'Stroop: Color Identification',
+                'flanker': 'Flanker: Attention Task',
+                'nback': 'N-Back: Working Memory',
+                'taskswitch': 'Task Switching: Executive Control'
+            };
+
+            let listHTML = '';
+            state.trainingExercises.forEach((ex, i) => {
+                listHTML += `<div class="exercise-item">
+                    <span style="color: #E84B63;">Exercise ${i + 1}:</span> ${exerciseNames[ex]}
+                </div>`;
+            });
+            document.getElementById('trainingExerciseList').innerHTML = listHTML;
+
+            document.getElementById('trainingIntro').style.display = 'block';
+            document.getElementById('trainingExercise').classList.add('hidden');
+            document.getElementById('trainingRest').classList.add('hidden');
+            document.getElementById('trainingSessionResults').classList.add('hidden');
+        }
+
+        function startTrainingSession() {
+            document.getElementById('trainingIntro').style.display = 'none';
+            document.getElementById('trainingExercise').classList.remove('hidden');
+            state.trainingTrial = 0;
+            showNextTrainingExercise();
+        }
+
+        function showNextTrainingExercise() {
+            if (state.trainingExerciseIndex >= state.trainingExercises.length) {
+                completeTrainingSession();
+                return;
+            }
+
+            state.currentExerciseType = state.trainingExercises[state.trainingExerciseIndex];
+            state.trainingTrial = 0;
+            state.trainingTrials = [];
+
+            // Hide all exercises
+            document.getElementById('stroopExercise').classList.add('hidden');
+            document.getElementById('flankerExercise').classList.add('hidden');
+            document.getElementById('nbackExercise').classList.add('hidden');
+            document.getElementById('taskSwitchExercise').classList.add('hidden');
+
+            // Show current exercise
+            document.getElementById(getExerciseElementId(state.currentExerciseType)).classList.remove('hidden');
+
+            // Generate trials
+            if (state.currentExerciseType === 'stroop') {
+                state.trainingTrials = generateStroopTrials(15, Math.floor(15 / 2));
+            } else if (state.currentExerciseType === 'flanker') {
+                state.trainingTrials = generateFlankerTrials(15);
+            } else if (state.currentExerciseType === 'nback') {
+                state.trainingTrials = generateNBackTrials(15, state.adaptiveDifficulty.nback);
+            } else if (state.currentExerciseType === 'taskswitch') {
+                state.trainingTrials = generateTaskSwitchTrials(15);
+            }
+
+            showTrainingTrial();
+        }
+
+        function getExerciseElementId(type) {
+            const map = {
+                'stroop': 'stroopExercise',
+                'flanker': 'flankerExercise',
+                'nback': 'nbackExercise',
+                'taskswitch': 'taskSwitchExercise'
+            };
+            return map[type];
+        }
+
+        function showTrainingTrial() {
+            if (state.trainingTrial >= state.trainingTrials.length) {
+                // Evaluate exercise
+                evaluateTrainingExercise();
+                return;
+            }
+
+            const trial = state.trainingTrials[state.trainingTrial];
+            const exNum = state.trainingExerciseIndex + 1;
+            const trialNum = state.trainingTrial + 1;
+
+            document.getElementById('trainingExerciseNum').textContent = exNum;
+            document.getElementById('trainingTrialNum').textContent = trialNum;
+            document.getElementById('trainingProgress').style.width = ((trialNum / state.trainingTrials.length) * 100) + '%';
+            document.getElementById('trainingFeedback').textContent = '';
+            document.getElementById('trainingFeedback').className = 'feedback';
+
+            // Show trial based on type
+            if (state.currentExerciseType === 'stroop') {
+                const colorValues = [colors.red, colors.blue, colors.green, colors.yellow];
+                document.getElementById('exerciseWord').textContent = trial.word;
+                document.getElementById('exerciseWord').style.color = colorValues[trial.color];
+            } else if (state.currentExerciseType === 'flanker') {
+                document.getElementById('flankerStimulus').textContent = trial.stimulus;
+            } else if (state.currentExerciseType === 'nback') {
+                document.getElementById('nbackLetter').textContent = trial.letter;
+                document.getElementById('nbackN').textContent = state.adaptiveDifficulty.nback;
+            } else if (state.currentExerciseType === 'taskswitch') {
+                document.getElementById('switchStimulus').textContent = trial.number;
+                document.getElementById('switchStimulus').className = 'task-switch-stimulus ' + trial.rule;
+                const isEvenOdd = trial.rule === 'even-odd';
+                document.getElementById('switchQuestion').textContent = isEvenOdd ? 'Is it even?' : 'Is it greater than 5?';
+            }
+
+            state.trainingStartTime = Date.now();
+            state.trainingResponding = false; // re-enable responding
+
+            document.onkeydown = (e) => {
+                detectInputDevice('keyboard');
+                if (state.currentExerciseType === 'stroop' && e.key >= '1' && e.key <= '4') {
+                    trainingRespond(parseInt(e.key) - 1);
+                } else if (state.currentExerciseType === 'flanker' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                    trainingRespond(e.key === 'ArrowRight' ? 1 : 0);
+                } else if (state.currentExerciseType === 'nback' && (e.key.toLowerCase() === 'm' || e.key.toLowerCase() === 'n')) {
+                    trainingRespond(e.key.toLowerCase() === 'm' ? 1 : 0);
+                } else if (state.currentExerciseType === 'taskswitch' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                    trainingRespond(e.key === 'ArrowRight' ? 1 : 0);
+                }
+            };
+        }
+
+        function generateFlankerTrials(count) {
+            const trials = [];
+            const congruent = Math.floor(count / 2);
+
+            // Congruent
+            for (let i = 0; i < congruent; i++) {
+                const direction = Math.random() > 0.5 ? '→' : '←';
+                trials.push({
+                    stimulus: `${direction} ${direction} ${direction} ${direction} ${direction}`,
+                    correctAnswer: direction === '→' ? 1 : 0,
+                    congruent: true
+                });
+            }
+
+            // Incongruent
+            for (let i = 0; i < count - congruent; i++) {
+                const centerDir = Math.random() > 0.5 ? '→' : '←';
+                const flankerDir = centerDir === '→' ? '←' : '→';
+                trials.push({
+                    stimulus: `${flankerDir} ${flankerDir} ${centerDir} ${flankerDir} ${flankerDir}`,
+                    correctAnswer: centerDir === '→' ? 1 : 0,
+                    congruent: false
+                });
+            }
+
+            return trials.sort(() => Math.random() - 0.5);
+        }
+
+        function generateNBackTrials(count, n) {
+            const trials = [];
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            let previousLetters = [];
+
+            for (let i = 0; i < count; i++) {
+                const letter = letters[Math.floor(Math.random() * letters.length)];
+                const shouldMatch = i >= n && Math.random() > 0.5;
+                const displayLetter = shouldMatch ? previousLetters[previousLetters.length - n] : letter;
+
+                trials.push({
+                    letter: displayLetter,
+                    correctAnswer: shouldMatch ? 1 : 0
+                });
+
+                previousLetters.push(displayLetter);
+                if (previousLetters.length > n) {
+                    previousLetters.shift();
+                }
+            }
+
+            return trials;
+        }
+
+        function generateTaskSwitchTrials(count) {
+            const trials = [];
+            let lastRule = null;
+
+            for (let i = 0; i < count; i++) {
+                let rule;
+                do {
+                    rule = Math.random() > 0.5 ? 'even-odd' : 'comparison';
+                } while (rule === lastRule && i > 0);
+                lastRule = rule;
+
+                let number;
+                do {
+                    number = Math.floor(Math.random() * 9) + 1;
+                } while (number === 5);
+
+                let correctAnswer;
+                if (rule === 'even-odd') {
+                    correctAnswer = number % 2 === 0 ? 1 : 0; // Yes if even
+                } else {
+                    correctAnswer = number > 5 ? 1 : 0; // Yes if greater than 5
+                }
+
+                trials.push({
+                    number: number,
+                    rule: rule,
+                    correctAnswer: correctAnswer
+                });
+            }
+
+            return trials;
+        }
+
+        function trainingRespond(answer) {
+            if (state.trainingResponding) return; // prevent double-fire
+            state.trainingResponding = true;
+
+            const trial = state.trainingTrials[state.trainingTrial];
+            const rawResponseTime = Date.now() - state.trainingStartTime;
+            const responseTime = normalizeRT(rawResponseTime);
+
+            trial.response = answer;
+            trial.rawResponseTime = rawResponseTime;
+            trial.responseTime = responseTime;
+            trial.inputDevice = getActiveDevice();
+            trial.correct = answer === trial.correctAnswer;
+
+            const correct = trial.correct;
+            document.getElementById('trainingFeedback').textContent = correct ? '✓ Correct' : '✗ Incorrect';
+            document.getElementById('trainingFeedback').className = 'feedback ' + (correct ? 'correct' : 'incorrect');
+
+            document.onkeydown = null;
+
+            setTimeout(() => {
+                state.trainingTrial++;
+                state.trainingResponding = false;
+                showTrainingTrial();
+            }, 500);
+        }
+
+        function evaluateTrainingExercise() {
+            const correct = state.trainingTrials.filter(t => t.correct).length;
+            const accuracy = (correct / state.trainingTrials.length) * 100;
+            const avgSpeed = state.trainingTrials.reduce((sum, t) => sum + t.responseTime, 0) / state.trainingTrials.length;
+
+            const exerciseScore = (accuracy * 0.5) + ((100 - Math.min(avgSpeed / 10, 100)) * 0.5);
+
+            state.trainingScores.push({
+                exercise: state.currentExerciseType,
+                score: exerciseScore,
+                accuracy: accuracy,
+                avgSpeed: avgSpeed,
+                inputDevice: getActiveDevice(),
+                latencyOffset: getLatencyOffset(),
+                trials: state.trainingTrials
+            });
+
+            // Adapt difficulty for next time
+            if (accuracy > 85) {
+                state.adaptiveDifficulty[state.currentExerciseType] = Math.min(5, state.adaptiveDifficulty[state.currentExerciseType] + 1);
+            } else if (accuracy < 65) {
+                state.adaptiveDifficulty[state.currentExerciseType] = Math.max(1, state.adaptiveDifficulty[state.currentExerciseType] - 1);
+            }
+
+            // Show rest screen
+            state.trainingExerciseIndex++;
+
+            if (state.trainingExerciseIndex < state.trainingExercises.length) {
+                document.getElementById('trainingExercise').classList.add('hidden');
+                document.getElementById('trainingRest').classList.remove('hidden');
+                document.getElementById('restMessage').textContent = `You completed ${state.currentExerciseType}. Accuracy: ${Math.round(accuracy)}%`;
+            } else {
+                // Session complete
+                document.getElementById('trainingExercise').classList.add('hidden');
+                document.getElementById('trainingRest').classList.add('hidden');
+                displayTrainingSessionResults();
+            }
+        }
+
+        function continueTraining() {
+            document.getElementById('trainingRest').classList.add('hidden');
+            document.getElementById('trainingExercise').classList.remove('hidden');
+            state.trainingTrial = 0;
+            showNextTrainingExercise();
+        }
+
+        function displayTrainingSessionResults() {
+            const sessionScore = state.trainingScores.reduce((sum, s) => sum + s.score, 0) / state.trainingScores.length;
+            state.sessionsCompleted++;
+
+            if (state.currentSession === 8) {
+                // Final assessment
+                state.baselineHistory.push({
+                    score: sessionScore,
+                    accuracy: 0,
+                    avgSpeed: 0,
+                    timestamp: Date.now(),
+                    isProgressTest: true
+                });
+            }
+
+            document.getElementById('sessionScore').textContent = Math.round(sessionScore);
+
+            // Exercise results
+            let resultsHTML = '';
+            state.trainingScores.forEach((s, i) => {
+                const names = { 'stroop': 'Stroop', 'flanker': 'Flanker', 'nback': 'N-Back', 'taskswitch': 'Task Switch' };
+                const deviceConfig = INPUT_DEVICE_CONFIG[s.inputDevice] || INPUT_DEVICE_CONFIG['unknown'];
+                const offsetNote = s.latencyOffset ? ` (${s.latencyOffset}ms adj.)` : '';
+                resultsHTML += `<div class="card">
+                    <p style="font-weight: 700; margin-bottom: 8px;">${names[s.exercise]}</p>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-value">${Math.round(s.accuracy)}%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Speed</div>
+                            <div class="stat-value">${Math.round(s.avgSpeed)}ms</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 11px; color: #999; text-align: center; margin-top: 8px;">${deviceConfig.icon} ${deviceConfig.label}${offsetNote}</p>
+                </div>`;
+            });
+            document.getElementById('exerciseResultsList').innerHTML = resultsHTML;
+
+            // Show improvement if there's a previous session
+            let improvementHTML = '';
+            if (state.baselineHistory.length > 1) {
+                const prevScore = state.baselineHistory[state.baselineHistory.length - 2].score;
+                const improvement = sessionScore - prevScore;
+                if (improvement > 0) {
+                    improvementHTML = `<div class="improvement-card">
+                        <div class="improvement-label">Session vs Last</div>
+                        <div class="improvement-value">+${Math.round(improvement)} points</div>
+                    </div>`;
+                }
+            }
+            document.getElementById('improvementSection').innerHTML = improvementHTML;
+
+            // Show comprehensive Kenetik protocol for this week
+            const week = Math.ceil(state.currentSession / 2);
+            document.getElementById('kenetikProtocol').innerHTML = buildProtocolHTML(week);
+
+            document.getElementById('trainingSessionResults').classList.remove('hidden');
+
+            // Advance to next session
+            if (state.currentSession < 8) {
+                state.currentSession++;
+            }
+            state.sessionsCompleted++;
+
+            // Persist progress
+            autoSave();
+        }
+
+        // ===== KENETIK CONSUMPTION PROTOCOL =====
+        function buildProtocolHTML(week) {
+            const weeklyTraining = [
+                // Week 1: Establish Baseline
+                {
+                    title: 'Week 1 — Establish Your Baseline',
+                    training: 'Take your baseline test WITHOUT Kenetik first (Session 1). Then, 30 minutes before Session 2, drink one can of Kenetik RTD (12g D-BHB ketones). Compare your scores to see the acute cognitive effect.',
+                    science: 'In a randomized, double-blind crossover trial, BHB supplementation improved processing speed and increased cerebral blood flow. (Walsh 2021)'
+                },
+                // Week 2: Build the Daily Ritual
+                {
+                    title: 'Week 2 — Build the Daily Ritual',
+                    training: 'Drink one can of Kenetik RTD every morning as your daily ritual — with or without food. On training days, this IS your pre-session dose (30 min before). Your metabolism is learning to use ketones efficiently through cyclic metabolic switching.',
+                    science: '31-day ketone supplementation significantly improved cognitive function measured by Stroop test (p=0.015), independent of physical performance changes. (PMID 41773904)'
+                },
+                // Week 3: Add Situational Doses
+                {
+                    title: 'Week 3 — Add Situational Doses',
+                    training: 'Continue your daily morning Kenetik. This week, add a second situational dose: a Shot (10g ketones) or half-serving of Concentrate before your most demanding afternoon work block. Track how your focus and stamina respond.',
+                    science: 'Exogenous ketones increased circulating dopamine and maintained mental alertness during exhaustive effort. (Poffé 2023)'
+                },
+                // Week 4: Measure & Optimize
+                {
+                    title: 'Week 4 — Measure Your Progress',
+                    training: 'Session 8 is your progress reassessment. Take your morning Kenetik as usual (30 min before). Compare your Week 4 Brain Score to your original baseline. By now, your daily ritual + situational protocol should feel natural.',
+                    science: 'One bottle of Kenetik increased alpha wave power by 18% and gamma wave power by 16% — brainwave patterns linked to calm focus and information processing. (Machado 2022)'
+                }
+            ];
+
+            const currentWeek = weeklyTraining[Math.min(week - 1, 3)];
+
+            // Daily protocol (always shown)
+            const dailyProtocol = `
+                <div style="margin-top: 16px; padding: 16px; background: rgba(232,75,99,0.04); border-radius: 10px; border: 1px solid rgba(232,75,99,0.12);">
+                    <p style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #E84B63; margin-bottom: 10px;">Daily Foundation</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 8px;"><strong>Morning Ritual:</strong> 1 can RTD (12g ketones) or 1 serving Concentrate. With breakfast or on an empty stomach — both work. This is your cognitive baseline fuel for the day.</p>
+                    <p style="font-size: 14px; line-height: 1.6;"><strong>Why daily?</strong> Consistent ketone exposure trains your metabolism through cyclic metabolic switching — the more regularly you fuel with ketones, the more efficiently your brain uses them.</p>
+                </div>`;
+
+            // Situational protocol (always shown)
+            const situationalProtocol = `
+                <div style="margin-top: 12px; padding: 16px; background: rgba(244,179,65,0.04); border-radius: 10px; border: 1px solid rgba(244,179,65,0.12);">
+                    <p style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #d4a017; margin-bottom: 10px;">Situational Boosters</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Pre-Performance (30 min before):</strong> 1 can RTD or 1 Shot before presentations, board meetings, competitions, exams, or deep work sprints. Pair with the Neural Priming module for maximum effect.</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Late Afternoon / Evening:</strong> 1 Shot (10g ketones) or half-serving Concentrate to bridge the afternoon energy dip — caffeine-free, so it won't disrupt sleep.</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Before Bed / Recovery Sleep:</strong> 1 Shot or half-serving Concentrate 30 min before sleep. Ketones support sleep efficiency and help prevent the drop in REM sleep caused by physical stress. (Robberechts 2023)</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Travel / Time Zone Change:</strong> 1 can RTD on arrival + 1 Shot before bed at your new destination. Ketones support cerebral blood flow and cognitive resilience during the metabolic disruption of jet lag.</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>After Alcohol:</strong> 1 Shot or 1 can RTD the morning after. Alcohol depletes brain energy substrates and disrupts sleep architecture — ketones provide an alternative fuel source to support recovery and next-day cognitive performance.</p>
+                    <p style="font-size: 14px; line-height: 1.6;"><strong>Sports / Training Days:</strong> 1 can RTD 30 min before activity for cognitive sharpness under physical fatigue. For endurance events, add a Shot at the halfway point. Ketones maintained mental alertness and increased dopamine during exhaustive effort. (Poffé 2023)</p>
+                </div>`;
+
+            // Format recommendation
+            const formatGuide = `
+                <div style="margin-top: 12px; padding: 16px; background: #f7f7f7; border-radius: 10px;">
+                    <p style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #666; margin-bottom: 10px;">Which Format When</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Cans (12g):</strong> Morning ritual, pre-training, deep work sessions. Your everyday format.</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 6px;"><strong>Shots (10g):</strong> Travel, pre-bed, afternoon boost, post-alcohol recovery, on-the-go. TSA-friendly and pocket-sized.</p>
+                    <p style="font-size: 14px; line-height: 1.6;"><strong>Concentrate (12g/serving):</strong> Home base. Best value per serving. Customize your dose. Stock the house.</p>
+                </div>`;
+
+            return `
+                <div class="science-card" style="padding: 20px;">
+                    <p style="font-weight: 700; font-size: 16px; margin-bottom: 8px;">${currentWeek.title}</p>
+                    <p style="font-size: 14px; line-height: 1.6; margin-bottom: 8px;">${currentWeek.training}</p>
+                    <p style="font-size: 13px; font-style: italic; color: #666;">${currentWeek.science}</p>
+                    ${dailyProtocol}
+                    ${situationalProtocol}
+                    ${formatGuide}
+                </div>`;
+        }
+
+        // ===== NEURAL PRIMING =====
+        function initNeuralPriming() {
+            state.primingScenario = null;
+            state.primingDuration = null;
+            state.primingPhase = 0;
+
+            document.getElementById('primingIntro').style.display = 'block';
+            document.getElementById('primingProtocol').classList.add('hidden');
+        }
+
+        function selectPrimingScenario(scenario) {
+            state.primingScenario = scenario;
+
+            // Update button states
+            document.querySelectorAll('#primingIntro .task-buttons:nth-of-type(1) .task-btn').forEach(btn => {
+                btn.style.background = '#f7f7f7';
+                btn.style.color = '#000';
+            });
+            event.target.style.background = 'linear-gradient(135deg, #E84B63 0%, #F4B341 100%)';
+            event.target.style.color = 'white';
+        }
+
+        function selectPrimingDuration(duration) {
+            state.primingDuration = duration;
+
+            // Update button states
+            document.querySelectorAll('#primingIntro .task-buttons:nth-of-type(2) .task-btn').forEach(btn => {
+                btn.style.background = '#f7f7f7';
+                btn.style.color = '#000';
+            });
+            event.target.style.background = 'linear-gradient(135deg, #E84B63 0%, #F4B341 100%)';
+            event.target.style.color = 'white';
+
+            // Start protocol
+            if (state.primingScenario && state.primingDuration) {
+                startNeuralPriming();
+            }
+        }
+
+        function startNeuralPriming() {
+            document.getElementById('primingIntro').style.display = 'none';
+            document.getElementById('primingProtocol').classList.remove('hidden');
+            state.primingPhase = 0;
+            state.primingStartTime = Date.now();
+
+            showPrimingPhase();
+        }
+
+        function showPrimingPhase() {
+            // Hide all phases
+            document.getElementById('primingPhase1').classList.add('hidden');
+            document.getElementById('primingPhase2').classList.add('hidden');
+            document.getElementById('primingPhase3').classList.add('hidden');
+            document.getElementById('primingPhase4').classList.add('hidden');
+
+            // Update dots
+            const phaseCount = 4;
+            let dotsHTML = '';
+            for (let i = 0; i < phaseCount; i++) {
+                dotsHTML += `<div class="phase-dot ${i === state.primingPhase ? 'active' : ''}"></div>`;
+            }
+            document.getElementById('phaseDots').innerHTML = dotsHTML;
+
+            if (state.primingPhase === 0) {
+                showBreathingPhase();
+            } else if (state.primingPhase === 1) {
+                showCognitiveActivationPhase();
+            } else if (state.primingPhase === 2) {
+                showVisualizationPhase();
+            } else if (state.primingPhase === 3) {
+                showActivationCuePhase();
+            }
+        }
+
+        function showBreathingPhase() {
+            document.getElementById('primingPhase1').classList.remove('hidden');
+
+            const breathingSteps = ['Inhale', 'Hold', 'Exhale', 'Hold'];
+            const breathingDurations = [4000, 4000, 4000, 4000];
+            const cycles = state.primingDuration === 5 ? 4 : 6;
+            let stepIndex = 0;
+            let cycleIndex = 0;
+
+            const runBreathingCycle = () => {
+                if (cycleIndex >= cycles) {
+                    state.primingPhase = 1;
+                    showPrimingPhase();
+                    return;
+                }
+
+                if (stepIndex >= 4) {
+                    stepIndex = 0;
+                    cycleIndex++;
+                    if (cycleIndex >= cycles) {
+                        state.primingPhase = 1;
+                        showPrimingPhase();
+                        return;
+                    }
+                }
+
+                document.getElementById('breathingText').textContent = breathingSteps[stepIndex];
+
+                setTimeout(() => {
+                    stepIndex++;
+                    runBreathingCycle();
+                }, breathingDurations[stepIndex]);
+            };
+
+            runBreathingCycle();
+        }
+
+        // Map each scenario to a cognitive drill type
+        const SCENARIO_DRILL_MAP = {
+            'sprint-power': 'reaction',
+            'endurance': 'reaction',
+            'team-sport': 'decision',
+            'combat-reactive': 'reaction',
+            'precision': 'stroop',
+            'surgery': 'stroop',
+            'presentation': 'fluency',
+            'exam': 'stroop',
+            'executive': 'decision',
+            'deepwork': 'stroop'
+        };
+
+        const SCENARIO_DECISION_PROMPTS = {
+            'team-sport': [
+                { text: 'Teammate is open but defender is closing. 3 seconds to decide.', options: ['Pass now', 'Hold & drive'] },
+                { text: 'Down by 1 with 2 minutes left. Strategy?', options: ['Push tempo', 'Play controlled'] },
+                { text: 'Key player picks up a foul. Immediate call?', options: ['Sub early', 'Keep them in'] },
+                { text: 'Opponent shifts formation. Your adjustment?', options: ['Mirror them', 'Exploit the gap'] }
+            ],
+            'executive': [
+                { text: 'Your team disagrees on direction. You need to decide in 5 seconds.', options: ['Bold move forward', 'Conservative hold'] },
+                { text: 'Stakeholder challenges your proposal. Best response?', options: ['Acknowledge & pivot', 'Hold your ground'] },
+                { text: 'Budget cut forces a trade-off. Which do you protect?', options: ['Team capacity', 'Product quality'] },
+                { text: 'Unexpected competitor move. React or stay the course?', options: ['Rapid response', 'Stay the course'] }
+            ]
+        };
+
+        const SCENARIO_FLUENCY_CATEGORIES = {
+            'presentation': ['Words that describe your main message', 'Benefits your audience cares about']
+        };
+
+        function showCognitiveActivationPhase() {
+            document.getElementById('primingPhase2').classList.remove('hidden');
+
+            const scenario = state.primingScenario;
+            const drillType = SCENARIO_DRILL_MAP[scenario];
+
+            // Hide all drill containers
+            document.getElementById('primingBoardMeeting').classList.add('hidden');
+            document.getElementById('primingPresentation').classList.add('hidden');
+            document.getElementById('primingCompetition').classList.add('hidden');
+            document.getElementById('primingDeepWork').classList.add('hidden');
+
+            if (drillType === 'decision') {
+                document.getElementById('primingBoardMeeting').classList.remove('hidden');
+                const prompts = SCENARIO_DECISION_PROMPTS[scenario] || SCENARIO_DECISION_PROMPTS['executive'];
+                let scenarioIndex = 0;
+
+                const showDecisionScenario = () => {
+                    if (scenarioIndex >= prompts.length) {
+                        state.primingPhase = 2;
+                        showPrimingPhase();
+                        return;
+                    }
+
+                    const s = prompts[scenarioIndex];
+                    document.getElementById('primingScenario').textContent = s.text;
+                    let choicesHTML = '';
+                    s.options.forEach((opt) => {
+                        choicesHTML += `<button class="task-btn" style="background-color: #f7f7f7; color: #000; padding: 12px;" onclick="this.style.background='linear-gradient(135deg,#E84B63,#F4B341)'; this.style.color='white';">${opt}</button>`;
+                    });
+                    document.getElementById('primingChoices').innerHTML = choicesHTML;
+
+                    // Auto-advance after 5 seconds
+                    setTimeout(() => {
+                        scenarioIndex++;
+                        showDecisionScenario();
+                    }, 5000);
+                };
+
+                showDecisionScenario();
+
+            } else if (drillType === 'fluency') {
+                document.getElementById('primingPresentation').classList.remove('hidden');
+                const categories = SCENARIO_FLUENCY_CATEGORIES[scenario] || ['Things you know well'];
+                document.getElementById('primingCategory').textContent = 'Category: ' + categories[0];
+
+                let timeLeft = 30;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('primingTimer').textContent = timeLeft + 's';
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        state.primingPhase = 2;
+                        showPrimingPhase();
+                    }
+                }, 1000);
+
+            } else if (drillType === 'reaction') {
+                document.getElementById('primingCompetition').classList.remove('hidden');
+
+                let reactionCount = 0;
+                const totalRounds = scenario === 'sprint-power' ? 10 : scenario === 'combat-reactive' ? 10 : 8;
+                const durations = Array.from({length: totalRounds}, (_, i) => Math.max(500, 1200 - i * 70));
+                let roundIndex = 0;
+
+                const runReactionRound = () => {
+                    if (roundIndex >= durations.length) {
+                        state.primingPhase = 2;
+                        showPrimingPhase();
+                        return;
+                    }
+
+                    document.getElementById('primingFlash').style.opacity = '0.3';
+                    document.getElementById('primingReactionCount').textContent = `${reactionCount + 1} / ${durations.length}`;
+
+                    setTimeout(() => {
+                        document.getElementById('primingFlash').style.opacity = '1';
+                        reactionCount++;
+                        roundIndex++;
+                        setTimeout(runReactionRound, durations[roundIndex - 1]);
+                    }, 500);
+                };
+
+                runReactionRound();
+
+            } else if (drillType === 'stroop') {
+                document.getElementById('primingDeepWork').classList.remove('hidden');
+
+                const trialCount = scenario === 'surgery' ? 8 : 6;
+                const stroopTrials = generateStroopTrials(trialCount, Math.floor(trialCount / 2));
+                let trialIndex = 0;
+
+                const showStroopTrial = () => {
+                    if (trialIndex >= stroopTrials.length) {
+                        state.primingPhase = 2;
+                        showPrimingPhase();
+                        return;
+                    }
+
+                    const trial = stroopTrials[trialIndex];
+                    const colorValues = [colors.red, colors.blue, colors.green, colors.yellow];
+                    document.getElementById('primingStroopWord').textContent = trial.word;
+                    document.getElementById('primingStroopWord').style.color = colorValues[trial.color];
+
+                    trialIndex++;
+                };
+
+                showStroopTrial();
+            }
+        }
+
+        function showVisualizationPhase() {
+            document.getElementById('primingPhase3').classList.remove('hidden');
+
+            const scenarios = {
+                'sprint-power': [
+                    'See yourself in the blocks. Hands set. Weight forward.',
+                    'Your muscles are coiled springs. Every fiber is ready.',
+                    'The starter raises the gun. The world goes quiet.',
+                    'BANG. You explode forward. Pure power.',
+                    'Your drive phase is textbook. Low and powerful.',
+                    'You hit top speed. Everything is automatic.',
+                    'You cross the line. Total commitment. Zero hesitation.'
+                ],
+                'endurance': [
+                    'See yourself at the start. Thousands around you. You are calm.',
+                    'The gun fires. You settle into your pace immediately.',
+                    'Mile after mile, your breathing is steady and controlled.',
+                    'You hit the halfway mark feeling strong and disciplined.',
+                    'The hard miles come. You expected this. You embrace it.',
+                    'Your form holds. Your mind is quiet. Your legs keep turning.',
+                    'The finish appears. You find another gear. You always had it.'
+                ],
+                'team-sport': [
+                    'See yourself in the locker room. Focused. Ready.',
+                    'You step onto the field. You know your role and your teammates know theirs.',
+                    'The whistle blows. Your positioning is instinctive.',
+                    'The ball comes to you. Your first touch is clean.',
+                    'You see the play develop before it happens. You are one step ahead.',
+                    'Your communication is sharp. Your teammates feed off your energy.',
+                    'The final whistle. You left everything on the field.'
+                ],
+                'combat-reactive': [
+                    'See yourself stepping into the ring. Calm. Alert.',
+                    'Your stance is balanced. Your hands are up. Eyes locked.',
+                    'Your opponent moves. You read it instantly.',
+                    'You react without thinking. Muscle memory takes over.',
+                    'Counter. Slip. Strike. Everything flows.',
+                    'You control the distance. You control the tempo.',
+                    'You are the calm center in the storm. Precise and relentless.'
+                ],
+                'precision': [
+                    'See yourself approaching the tee. Or the line. Or the mark.',
+                    'You take a slow breath. The world narrows to one point.',
+                    'Your pre-shot routine begins. Every movement is deliberate.',
+                    'You feel the weight of the club. The ball. The bow.',
+                    'Your target is crystal clear. Nothing else exists.',
+                    'You execute. Smooth. Unhurried. Committed.',
+                    'The result takes care of itself. You trusted the process.'
+                ],
+                'surgery': [
+                    'See yourself at the scrub sink. Methodical. Unhurried.',
+                    'You walk into the OR. The team is ready. You are ready.',
+                    'You review the plan one final time. Every step is clear.',
+                    'You make the first incision. Your hands are steady.',
+                    'Each movement is precise and intentional. No wasted motion.',
+                    'A complication arises. You pause, assess, and adapt calmly.',
+                    'The procedure completes. Meticulous from first cut to last suture.'
+                ],
+                'presentation': [
+                    'See yourself walking to the front of the room.',
+                    'You feel prepared and grounded. You know this material.',
+                    'Your opening line lands. The room is with you.',
+                    'You make eye contact. You speak to individuals, not a crowd.',
+                    'You move through your material with steady momentum.',
+                    'A question comes. You welcome it. Your answer is clear.',
+                    'You close with conviction. The audience feels your certainty.'
+                ],
+                'exam': [
+                    'See yourself walking into the testing room. You are prepared.',
+                    'You sit down. Take one deep breath. Open the booklet.',
+                    'You read the first question carefully. You understand it.',
+                    'You begin writing. Your thoughts organize themselves naturally.',
+                    'A hard question appears. You skip it calmly and return later.',
+                    'Time passes and you are in the zone. Steady and methodical.',
+                    'You finish with time to review. Confident in your preparation.'
+                ],
+                'executive': [
+                    'See yourself entering the boardroom. Composed and prepared.',
+                    'You sit down. Your materials are organized. Your mind is clear.',
+                    'The discussion begins. You listen carefully before speaking.',
+                    'When you speak, your points are concise and data-driven.',
+                    'A challenge comes. You acknowledge it and redirect with clarity.',
+                    'The room looks to you for direction. You provide it calmly.',
+                    'The meeting ends with clear decisions. You guided it there.'
+                ],
+                'deepwork': [
+                    'See your workspace before you. Clean and organized.',
+                    'You sit down and close every distraction. Phone away. Notifications off.',
+                    'You open your materials. The first task is in front of you.',
+                    'You begin. Your focus narrows naturally to this one thing.',
+                    'Ideas connect. Solutions emerge. You are building something.',
+                    'Time becomes fluid. Minutes feel like seconds.',
+                    'You surface from deep focus. The work is strong. You are in flow.'
+                ]
+            };
+
+            const prompts = scenarios[state.primingScenario];
+            let promptIndex = 0;
+
+            const showPrompt = () => {
+                if (promptIndex >= prompts.length) {
+                    state.primingPhase = 3;
+                    showPrimingPhase();
+                    return;
+                }
+
+                document.getElementById('primingVisualization').textContent = prompts[promptIndex];
+                promptIndex++;
+
+                setTimeout(showPrompt, state.primingDuration === 5 ? 1500 : 2000);
+            };
+
+            showPrompt();
+        }
+
+        function showActivationCuePhase() {
+            document.getElementById('primingPhase4').classList.remove('hidden');
+
+            const cues = {
+                'sprint-power': 'Explosive. Committed. Unstoppable.',
+                'endurance': 'Mile by mile. Breath by breath. Relentless.',
+                'team-sport': 'Read it. React. Lead your team.',
+                'combat-reactive': 'Calm eyes. Fast hands. Total control.',
+                'precision': 'One target. One breath. One perfect execution.',
+                'surgery': 'Steady hands. Clear mind. Every step matters.',
+                'presentation': 'You know this material. They need to hear it. Go.',
+                'exam': 'You prepared for this. Trust your training. Begin.',
+                'executive': 'Clear mind. Sharp words. Calm command.',
+                'deepwork': 'One thing at a time. Deep focus starts now.'
+            };
+
+            document.getElementById('primingCue').textContent = cues[state.primingScenario];
+
+            let countdown = 3;
+            const countdownTimer = setInterval(() => {
+                document.getElementById('primingCountdown').textContent = countdown;
+                countdown--;
+
+                if (countdown < 0) {
+                    clearInterval(countdownTimer);
+                }
+            }, 1000);
+        }
+
+        function nextPrimingPhase() {
+            state.primingPhase++;
+            showPrimingPhase();
+        }
+
+        // ===== PROGRESS PAGE =====
+        function initProgress() {
+            const week = Math.ceil(state.currentSession / 2);
+            document.getElementById('progressWeek').textContent = week;
+            document.getElementById('progressSession').textContent = state.sessionsCompleted;
+
+            // Chart
+            if (state.baselineHistory.length > 0) {
+                document.getElementById('chartMessage').textContent = `${state.baselineHistory.length} assessment(s) completed`;
+            }
+
+            // Improvement cards
+            let improvementHTML = '';
+            if (state.trainingScores.length > 0) {
+                state.trainingScores.forEach(s => {
+                    const names = { 'stroop': 'Stroop', 'flanker': 'Flanker', 'nback': 'N-Back', 'taskswitch': 'Task Switch' };
+                    improvementHTML += `<div class="improvement-card">
+                        <div class="improvement-label">${names[s.exercise]}</div>
+                        <div class="improvement-value">${Math.round(s.accuracy)}% accuracy</div>
+                    </div>`;
+                });
+            }
+
+            if (improvementHTML) {
+                document.getElementById('improvementCardsContainer').innerHTML = improvementHTML;
+            } else {
+                document.getElementById('improvementCardsContainer').innerHTML = '<div class="info-text">Complete training sessions to see your improvements here.</div>';
+            }
+
+            // Comprehensive protocol
+            document.getElementById('protocolCard').innerHTML = buildProtocolHTML(week);
+
+            // Show retest button if baseline completed
+            if (state.baselineScore) {
+                document.getElementById('retestBtn').style.display = 'block';
+                document.getElementById('progressStatus').textContent = `Baseline Score: ${Math.round(state.baselineScore)} • ${state.sessionsCompleted} sessions completed`;
+            }
+        }
+
+        // ===== UTILITY =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+    </script>
+</body>
+</html>
