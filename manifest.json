@@ -1,0 +1,10 @@
+{
+  "name": "Kenetik Circuit",
+  "short_name": "Circuit",
+  "description": "Train your brain in under 10 minutes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#F5F0E8",
+  "icons": []
+}

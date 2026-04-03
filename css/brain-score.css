@@ -1,0 +1,525 @@
+/* ==========================================================================
+   Kenetik Circuit — Design System
+   Per spec v3.3, Sections 3.1–3.9
+   Typography: Futura (Century Gothic fallback)
+   Palette: Warm, light, premium — never dark as primary surface
+   ========================================================================== */
+
+/* --- CSS Custom Properties --- */
+:root {
+  /* Brand palette (Section 3.2) */
+  --kc-black: #000000;
+  --kc-white: #FFFFFF;
+  --kc-clean: #A3C3D9;
+  --kc-blackberry: #13286D;
+  --kc-strawberry: #E03D1A;
+  --kc-blueberry: #269DD2;
+  --kc-berry: #D01483;
+  --kc-peach: #F06925;
+  --kc-pineapple: #FBB11B;
+  --kc-warm-white: #F5F0E8;
+
+  /* Functional colors */
+  --kc-text-primary: var(--kc-black);
+  --kc-text-secondary: #555555;
+  --kc-text-muted: #999999;
+  --kc-text-light: #BBBBBB;
+  --kc-border: #E0E0E0;
+  --kc-bg-page: var(--kc-warm-white);
+  --kc-bg-card: var(--kc-white);
+  --kc-bg-panel: #F7F3ED;
+  --kc-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --kc-success: #2D9D4E;
+  --kc-error: var(--kc-strawberry);
+
+  /* Typography (Section 3.1) */
+  --kc-font-heading: 'Futura', 'Century Gothic', Arial, system-ui, sans-serif;
+  --kc-font-body: 'Futura', 'Century Gothic', Arial, system-ui, sans-serif;
+  --kc-font-mono: 'Futura', 'SF Mono', 'Menlo', monospace;
+
+  /* Spacing (8px grid, Section 3.3) */
+  --kc-space-xs: 8px;
+  --kc-space-sm: 16px;
+  --kc-space-md: 24px;
+  --kc-space-lg: 32px;
+  --kc-space-xl: 48px;
+  --kc-space-2xl: 64px;
+
+  /* Layout */
+  --kc-container-max: 680px;
+  --kc-radius: 8px;
+  --kc-radius-lg: 12px;
+  --kc-radius-pill: 100px;
+
+  /* Animation (Section 3.8) */
+  --kc-transition: 300ms ease-out;
+  --kc-transition-fast: 200ms ease-out;
+}
+
+/* --- Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Base --- */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--kc-font-body);
+  font-weight: 400;
+  color: var(--kc-text-primary);
+  background: var(--kc-bg-page);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* --- Container (Section 3.3: 680px max, 16px mobile padding) --- */
+.kc-container {
+  max-width: var(--kc-container-max);
+  margin: 0 auto;
+  padding: 0 var(--kc-space-sm);
+  width: 100%;
+}
+
+/* --- Typography --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--kc-font-heading);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.kc-heading-hero {
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.kc-heading-lg {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.kc-heading-md {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.kc-heading-sm {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.kc-subhead {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--kc-text-secondary);
+  line-height: 1.6;
+}
+
+.kc-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--kc-text-muted);
+}
+
+.kc-body {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.kc-caption {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--kc-text-muted);
+}
+
+.kc-whisper {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--kc-text-light);
+}
+
+/* --- Brain Score Display --- */
+.kc-score-display {
+  font-family: var(--kc-font-heading);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--kc-text-primary);
+}
+
+.kc-score-display--hero {
+  font-size: 64px;
+}
+
+.kc-score-change {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.kc-score-change--up {
+  color: var(--kc-success);
+}
+
+.kc-score-change--down {
+  color: var(--kc-strawberry);
+}
+
+/* --- Buttons --- */
+.kc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 48px;
+  font-family: var(--kc-font-body);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: var(--kc-radius-pill);
+  cursor: pointer;
+  transition: all var(--kc-transition-fast);
+  text-decoration: none;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.kc-btn--primary {
+  background: var(--kc-strawberry);
+  color: var(--kc-white);
+}
+
+.kc-btn--primary:hover {
+  background: #C83516;
+  transform: translateY(-1px);
+}
+
+.kc-btn--primary:active {
+  transform: scale(0.98);
+}
+
+.kc-btn--secondary {
+  background: var(--kc-white);
+  color: var(--kc-text-primary);
+  border: 1px solid var(--kc-border);
+}
+
+.kc-btn--secondary:hover {
+  border-color: var(--kc-text-muted);
+}
+
+.kc-btn--ghost {
+  background: transparent;
+  color: var(--kc-text-secondary);
+  padding: 12px 24px;
+}
+
+.kc-btn--ghost:hover {
+  color: var(--kc-text-primary);
+}
+
+.kc-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.kc-btn--full {
+  width: 100%;
+}
+
+/* --- Cards (Section 3.3) --- */
+.kc-card {
+  background: var(--kc-bg-card);
+  border-radius: var(--kc-radius-lg);
+  padding: var(--kc-space-sm);
+  box-shadow: var(--kc-shadow);
+}
+
+.kc-card--warm {
+  background: var(--kc-bg-panel);
+}
+
+/* --- Header Bar (Section 3.4: Blackberry navy) --- */
+.kc-header-bar {
+  background: var(--kc-blackberry);
+  color: var(--kc-white);
+  padding: var(--kc-space-sm) var(--kc-space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kc-space-sm);
+}
+
+.kc-header-bar__title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.kc-header-bar__meta {
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* --- Exercise Area (Section 3.4) --- */
+.kc-exercise-area {
+  background: var(--kc-bg-card);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--kc-space-lg);
+}
+
+/* --- Input Zone (Section 3.4: 48px min tap targets) --- */
+.kc-response-btn {
+  padding: 14px 32px;
+  font-family: var(--kc-font-body);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--kc-white);
+  border: 2px solid var(--kc-border);
+  border-radius: var(--kc-radius-pill);
+  cursor: pointer;
+  transition: all 150ms ease;
+  min-width: 100px;
+  min-height: 48px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.kc-response-btn:hover {
+  border-color: var(--kc-text-muted);
+  background: #FAFAFA;
+}
+
+.kc-response-btn:active {
+  transform: scale(0.97);
+}
+
+/* --- Progress Bar --- */
+.kc-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--kc-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.kc-progress-bar__fill {
+  height: 100%;
+  background: var(--kc-strawberry);
+  border-radius: 2px;
+  transition: width var(--kc-transition);
+}
+
+.kc-progress-bar--reward .kc-progress-bar__fill {
+  background: var(--kc-pineapple);
+}
+
+/* --- Streak --- */
+.kc-streak {
+  display: flex;
+  align-items: center;
+  gap: var(--kc-space-xs);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.kc-streak__icon {
+  font-size: 20px;
+}
+
+/* --- Points Animation --- */
+.kc-points-earned {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kc-pineapple);
+}
+
+@keyframes kc-float-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.kc-float-points {
+  animation: kc-float-up 1.2s ease-out forwards;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* --- Exercise Tile (Dashboard) --- */
+.kc-exercise-tile {
+  display: flex;
+  align-items: center;
+  gap: var(--kc-space-sm);
+  padding: var(--kc-space-sm);
+  background: var(--kc-bg-card);
+  border-radius: var(--kc-radius);
+  border: 1px solid var(--kc-border);
+}
+
+.kc-exercise-tile__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.kc-exercise-tile__name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.kc-exercise-tile__domain {
+  font-size: 12px;
+  color: var(--kc-text-muted);
+}
+
+/* --- Domain Colors --- */
+.kc-domain--processing-speed { color: var(--kc-blueberry); }
+.kc-domain--memory { color: var(--kc-berry); }
+.kc-domain--attention { color: var(--kc-peach); }
+.kc-domain--executive { color: var(--kc-pineapple); }
+.kc-domain--flexibility { color: var(--kc-clean); }
+.kc-domain--spatial { color: var(--kc-strawberry); }
+
+.kc-domain-bg--processing-speed { background: var(--kc-blueberry); color: white; }
+.kc-domain-bg--memory { background: var(--kc-berry); color: white; }
+.kc-domain-bg--attention { background: var(--kc-peach); color: white; }
+.kc-domain-bg--executive { background: var(--kc-pineapple); color: white; }
+.kc-domain-bg--flexibility { background: var(--kc-clean); color: var(--kc-blackberry); }
+.kc-domain-bg--spatial { background: var(--kc-strawberry); color: white; }
+
+/* --- Status Banners (Section 11.7.4) --- */
+.kc-banner {
+  padding: var(--kc-space-sm);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.kc-banner--offline {
+  background: var(--kc-warm-white);
+  color: var(--kc-text-secondary);
+  border-bottom: 1px solid var(--kc-border);
+}
+
+.kc-banner--syncing {
+  background: #FFF9E6;
+  color: #8B7520;
+}
+
+.kc-banner--error {
+  background: #FFF0ED;
+  color: var(--kc-strawberry);
+}
+
+/* --- Celebration Banner (Section 5.5.2: inline, not interstitial) --- */
+.kc-celebration {
+  background: linear-gradient(135deg, rgba(251, 177, 27, 0.08) 0%, rgba(208, 20, 131, 0.08) 100%);
+  border: 1px solid rgba(251, 177, 27, 0.2);
+  border-radius: var(--kc-radius-lg);
+  padding: var(--kc-space-md);
+  text-align: center;
+}
+
+.kc-celebration__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: var(--kc-space-xs);
+}
+
+.kc-celebration__detail {
+  font-size: 14px;
+  color: var(--kc-text-secondary);
+}
+
+/* --- Transitions (Section 3.8: 300ms fade) --- */
+.kc-fade-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.kc-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--kc-transition), transform var(--kc-transition);
+}
+
+.kc-screen {
+  display: none;
+}
+
+.kc-screen--active {
+  display: block;
+  animation: kc-screen-in 300ms ease-out;
+}
+
+@keyframes kc-screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsive (Section 3.7: mobile-first) --- */
+@media (max-width: 680px) {
+  .kc-heading-hero {
+    font-size: 32px;
+  }
+
+  .kc-heading-lg {
+    font-size: 26px;
+  }
+
+  .kc-score-display {
+    font-size: 40px;
+  }
+
+  .kc-score-display--hero {
+    font-size: 52px;
+  }
+}
+
+/* --- Utilities --- */
+.kc-text-center { text-align: center; }
+.kc-text-muted { color: var(--kc-text-muted); }
+.kc-mt-xs { margin-top: var(--kc-space-xs); }
+.kc-mt-sm { margin-top: var(--kc-space-sm); }
+.kc-mt-md { margin-top: var(--kc-space-md); }
+.kc-mt-lg { margin-top: var(--kc-space-lg); }
+.kc-mt-xl { margin-top: var(--kc-space-xl); }
+.kc-mb-xs { margin-bottom: var(--kc-space-xs); }
+.kc-mb-sm { margin-bottom: var(--kc-space-sm); }
+.kc-mb-md { margin-bottom: var(--kc-space-md); }
+.kc-mb-lg { margin-bottom: var(--kc-space-lg); }
+.kc-mb-xl { margin-bottom: var(--kc-space-xl); }
+.kc-gap-sm { gap: var(--kc-space-sm); }
+.kc-gap-md { gap: var(--kc-space-md); }
+.kc-hidden { display: none !important; }

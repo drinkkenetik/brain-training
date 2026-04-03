@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kenetik Circuit — Brain Training</title>
+  <meta name="description" content="Train your brain in under 10 minutes. See how your brain performs across 6 cognitive skills.">
+  <meta name="theme-color" content="#F5F0E8">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/brain-score.css">
+  <style>
+    /* Jost as Futura stand-in (closest free geometric sans) */
+    :root {
+      --kc-font-heading: 'Jost', 'Century Gothic', Arial, system-ui, sans-serif;
+      --kc-font-body: 'Jost', 'Century Gothic', Arial, system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== STATUS BANNER (Section 11.7.4) ===== -->
+  <div id="kc-status-banner" class="kc-banner kc-hidden"></div>
+
+  <!-- ===== PERSISTENT TOP BAR ===== -->
+  <header id="kc-topbar" class="kc-hidden" style="
+    position: sticky; top: 0; z-index: 100;
+    background: var(--kc-white);
+    border-bottom: 1px solid var(--kc-border);
+    padding: 10px var(--kc-space-sm);
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: var(--kc-container-max); margin: 0 auto; width: 100%;
+  ">
+    <div style="display: flex; align-items: center; gap: var(--kc-space-xs);">
+      <span class="kc-streak">
+        <span class="kc-streak__icon" id="kc-topbar-streak-icon">🔥</span>
+        <span id="kc-topbar-streak">0</span>
+      </span>
+    </div>
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--kc-text-muted);">
+      KENETIK CIRCUIT
+    </div>
+    <div style="display: flex; align-items: center; gap: var(--kc-space-xs);">
+      <span class="kc-points-earned" id="kc-topbar-points" style="font-size: 14px;">0 FP</span>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT AREA ===== -->
+  <main class="kc-container" style="padding-top: var(--kc-space-lg); padding-bottom: var(--kc-space-2xl);">
+
+    <!-- === SCREEN: FIRST / ARRIVAL (Section 5.4.1) === -->
+    <div id="screen-arrival" class="kc-screen kc-screen--active">
+      <div style="
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; text-align: center;
+        min-height: 70vh; padding: var(--kc-space-xl) 0;
+      ">
+        <h1 class="kc-heading-hero kc-mb-md" style="max-width: 480px;">
+          Train your brain in under 10 minutes.
+        </h1>
+        <p class="kc-subhead kc-mb-xl" style="max-width: 420px;">
+          See how your brain performs across 6 cognitive skills.
+        </p>
+        <button id="btn-start-training" class="kc-btn kc-btn--primary" style="padding: 18px 56px; font-size: 18px;">
+          Start Training
+        </button>
+        <p class="kc-whisper kc-mt-md">Powered by Kenetik. Metabolic brain fuel.</p>
+      </div>
+    </div>
+
+    <!-- === SCREEN: DASHBOARD (Section 5.6.2) === -->
+    <div id="screen-dashboard" class="kc-screen">
+      <div style="text-align: center; padding: var(--kc-space-md) 0;">
+
+        <!-- Brain Score (center, dominant) -->
+        <div class="kc-mb-sm">
+          <div class="kc-eyebrow kc-mb-xs">Brain Score</div>
+          <div class="kc-score-display kc-score-display--hero" id="dash-brain-score">—</div>
+          <div class="kc-score-change kc-mt-xs" id="dash-score-change"></div>
+          <div class="kc-caption kc-mt-xs kc-hidden" id="dash-partial-note">
+            Based on <span id="dash-domain-count">0</span> of 6 domains — keep training to unlock your full Brain Score.
+          </div>
+        </div>
+
+        <!-- Streak (left) + Next Reward (right) as row -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: var(--kc-space-lg); margin-bottom: var(--kc-space-lg);">
+          <div class="kc-streak" id="dash-streak">
+            <span class="kc-streak__icon">🔥</span>
+            <span id="dash-streak-count">0</span>
+            <span class="kc-caption">day streak</span>
+          </div>
+        </div>
+
+        <!-- Next Reward Progress -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-sm) var(--kc-space-md);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span class="kc-caption">Next reward</span>
+            <span class="kc-caption" id="dash-reward-label">1,000 pts to Free Shipping</span>
+          </div>
+          <div class="kc-progress-bar kc-progress-bar--reward">
+            <div class="kc-progress-bar__fill" id="dash-reward-progress" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Celebration banner slot (Section 5.5.2) -->
+        <div id="dash-celebration" class="kc-celebration kc-hidden kc-mb-md"></div>
+
+        <!-- Today's Exercises (preview tiles) -->
+        <div class="kc-mb-md">
+          <div class="kc-eyebrow kc-mb-sm">Today's Session</div>
+          <div id="dash-exercises" style="display: flex; flex-direction: column; gap: var(--kc-space-xs);">
+            <!-- Populated by engine.js -->
+          </div>
+        </div>
+
+        <!-- Single Start Button -->
+        <button id="btn-start-session" class="kc-btn kc-btn--primary kc-btn--full" style="font-size: 18px; padding: 18px;">
+          Start
+        </button>
+      </div>
+    </div>
+
+    <!-- === SCREEN: EXERCISE (runs individual games) === -->
+    <div id="screen-exercise" class="kc-screen">
+      <!-- Exercise header bar -->
+      <div class="kc-header-bar" id="exercise-header" style="border-radius: var(--kc-radius-lg) var(--kc-radius-lg) 0 0;">
+        <div class="kc-header-bar__title" id="exercise-name">—</div>
+        <div class="kc-header-bar__meta" id="exercise-progress">1 / 3</div>
+      </div>
+      <!-- Exercise content area (games render here) -->
+      <div class="kc-exercise-area" id="exercise-area" style="border-radius: 0 0 var(--kc-radius-lg) var(--kc-radius-lg); min-height: 400px;">
+        <!-- Game modules render their UI here -->
+      </div>
+    </div>
+
+    <!-- === SCREEN: COUNTDOWN (between exercises) === -->
+    <div id="screen-countdown" class="kc-screen">
+      <div style="display: flex; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+        <div>
+          <div class="kc-caption kc-mb-sm" id="countdown-label">Get ready...</div>
+          <div id="countdown-number" style="font-family: var(--kc-font-heading); font-size: 72px; font-weight: 300; color: var(--kc-text-primary);">3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === SCREEN: RESULTS (Section 5.5) === -->
+    <div id="screen-results" class="kc-screen">
+      <div style="text-align: center; padding: var(--kc-space-md) 0;">
+
+        <!-- Score Zone (top) -->
+        <div class="kc-mb-md">
+          <div class="kc-eyebrow kc-mb-xs">Brain Score</div>
+          <div class="kc-score-display kc-score-display--hero" id="results-brain-score">72</div>
+          <div class="kc-score-change kc-mt-xs" id="results-score-change"></div>
+        </div>
+
+        <!-- Celebration banner slot (inline, Section 5.5.2) -->
+        <div id="results-celebration" class="kc-celebration kc-hidden kc-mb-md"></div>
+
+        <!-- Session Summary (middle) -->
+        <div class="kc-card kc-mb-md" style="text-align: left;">
+          <div class="kc-eyebrow kc-mb-sm">Session Summary</div>
+          <div id="results-exercises" style="display: flex; flex-direction: column; gap: var(--kc-space-xs);">
+            <!-- Populated after session -->
+          </div>
+          <div class="kc-points-earned kc-mt-sm kc-text-center" id="results-points">+175 Fuel Points</div>
+        </div>
+
+        <!-- Progress Zone (lower) -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: var(--kc-space-lg); margin-bottom: var(--kc-space-md);">
+          <div class="kc-streak">
+            <span class="kc-streak__icon">🔥</span>
+            <span id="results-streak">0</span>
+            <span class="kc-caption">day streak</span>
+          </div>
+        </div>
+
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-sm) var(--kc-space-md);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span class="kc-caption">Next reward</span>
+            <span class="kc-caption" id="results-reward-label">825 pts to Free Shipping</span>
+          </div>
+          <div class="kc-progress-bar kc-progress-bar--reward">
+            <div class="kc-progress-bar__fill" id="results-reward-progress" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Single Action Prompt (bottom, Section 5.5.1) -->
+        <div id="results-action" class="kc-mb-md">
+          <!-- One of: consumption log, restock, sharing, or "See you tomorrow" -->
+        </div>
+
+        <button id="btn-results-done" class="kc-btn kc-btn--secondary kc-btn--full">
+          See you tomorrow
+        </button>
+
+        <!-- Brain Score Disclaimer (Section 15) -->
+        <p class="kc-whisper kc-mt-md" style="font-size: 11px;">
+          Brain Score measures your performance on cognitive exercises and is not a medical or diagnostic assessment.
+        </p>
+      </div>
+    </div>
+
+    <!-- === SCREEN: EMAIL GATE (Section 11.6.2: after baseline) === -->
+    <div id="screen-email-gate" class="kc-screen">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+        <h2 class="kc-heading-md kc-mb-sm">Save your Brain Score and start earning rewards.</h2>
+        <p class="kc-subhead kc-mb-lg" style="max-width: 400px;">
+          Enter your email to keep your progress, compete on leaderboards, and earn Fuel Points.
+        </p>
+        <div style="width: 100%; max-width: 360px; margin-bottom: var(--kc-space-md);">
+          <input type="email" id="gate-email" placeholder="you@example.com" style="
+            width: 100%; padding: 14px 20px;
+            border: 1px solid var(--kc-border); border-radius: var(--kc-radius-pill);
+            font-family: var(--kc-font-body); font-size: 16px;
+            outline: none; transition: border-color var(--kc-transition-fast);
+          ">
+        </div>
+        <button id="btn-gate-save" class="kc-btn kc-btn--primary kc-btn--full" style="max-width: 360px;" disabled>
+          Save & Continue
+        </button>
+        <button id="btn-gate-skip" class="kc-btn kc-btn--ghost kc-mt-sm">Skip for now</button>
+      </div>
+    </div>
+
+    <!-- === SCREEN: RETURN AFTER ABSENCE (Section 11.8) === -->
+    <div id="screen-return" class="kc-screen">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
+        <h1 class="kc-heading-hero kc-mb-sm">Welcome back.</h1>
+        <div class="kc-mb-md">
+          <div class="kc-eyebrow kc-mb-xs">Brain Score</div>
+          <div class="kc-score-display" id="return-brain-score">—</div>
+        </div>
+        <button id="btn-return-start" class="kc-btn kc-btn--primary" style="padding: 18px 56px; font-size: 18px;">
+          Pick up where you left off
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="js/engine.js"></script>
+  <script src="js/identity.js"></script>
+  <script src="js/gamification.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/loyaltylion.js"></script>
+  <script src="js/klaviyo.js"></script>
+  <script src="js/consumption.js"></script>
+
+  <!-- Exercise modules -->
+  <script src="exercises/stroop.js"></script>
+  <script src="exercises/dsst.js"></script>
+  <script src="exercises/flanker.js"></script>
+  <script src="exercises/nback.js"></script>
+  <script src="exercises/task-switching.js"></script>
+
+  <!-- Register service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function() {});
+      });
+    }
+  </script>
+
+</body>
+</html>
