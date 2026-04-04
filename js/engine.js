@@ -450,6 +450,7 @@
     engineState.currentExerciseIndex = 0;
     engineState.sessionResults = [];
     engineState.sessionPoints = 0;
+    _exerciseCompleting = false;
     runNextExercise();
   }
 
@@ -497,6 +498,7 @@
   }
 
   function launchExercise(exerciseKey) {
+    _exerciseCompleting = false; // Reset guard for new exercise
     var area = document.getElementById('exercise-area');
     if (!area) return;
     area.innerHTML = '';
@@ -522,7 +524,13 @@
     });
   }
 
+  var _exerciseCompleting = false;
+
   function handleExerciseComplete(exerciseKey, result) {
+    // Guard against double-completion (debug skip + game timer both firing)
+    if (_exerciseCompleting) return;
+    _exerciseCompleting = true;
+
     var normalized = normalizeScore(exerciseKey, result);
     var points = 25; // Per exercise (Section 6.1)
 
