@@ -159,7 +159,22 @@
       </div>
     </div>
 
-    <!-- === SCREEN: COUNTDOWN (between exercises) === -->
+    <!-- === SCREEN: INSTRUCTIONS (before each exercise) === -->
+    <div id="screen-instructions" class="kc-screen">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 65vh; text-align: center; padding: var(--kc-space-lg) 0;">
+        <div id="instructions-icon" style="font-size: 48px; margin-bottom: var(--kc-space-sm);"></div>
+        <h2 id="instructions-name" class="kc-heading-md kc-mb-xs"></h2>
+        <div id="instructions-domain" class="kc-caption kc-mb-md" style="text-transform: capitalize;"></div>
+        <div id="instructions-text" style="max-width: 420px; font-size: 16px; line-height: 1.7; color: var(--kc-text-secondary); margin-bottom: var(--kc-space-md);"></div>
+        <div id="instructions-how" style="max-width: 400px; text-align: left; margin-bottom: var(--kc-space-lg);"></div>
+        <button id="btn-ready" class="kc-btn kc-btn--primary" style="padding: 16px 56px; font-size: 18px;">
+          I'm Ready
+        </button>
+        <div class="kc-caption kc-mt-sm" id="instructions-duration"></div>
+      </div>
+    </div>
+
+    <!-- === SCREEN: COUNTDOWN (3-2-1 after user taps Ready) === -->
     <div id="screen-countdown" class="kc-screen">
       <div style="display: flex; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
         <div>

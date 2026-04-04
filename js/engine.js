@@ -417,7 +417,86 @@
   }
 
   // ===== SCREEN MANAGEMENT =====
-  var allScreens = ['arrival', 'dashboard', 'exercise', 'countdown', 'results', 'email-gate', 'return'];
+  var allScreens = ['arrival', 'dashboard', 'exercise', 'instructions', 'countdown', 'results', 'email-gate', 'return'];
+
+  // Exercise instructions — shown before each exercise so users know what to do
+  var EXERCISE_INSTRUCTIONS = {
+    stroop: {
+      text: 'You\'ll see color words displayed in different ink colors. Your job is to name the <strong>ink color</strong>, not read the word. It sounds simple — your brain will disagree.',
+      steps: ['A word appears in a colored ink', 'Ignore what the word says', 'Tap the button matching the <strong>ink color</strong>'],
+      duration: 'About 60 seconds'
+    },
+    dsst: {
+      text: 'Match symbols to digits as fast as you can. A reference key shows which symbol goes with which number. When a number appears, tap the correct symbol.',
+      steps: ['Study the symbol-digit key at the top', 'A number appears in the center', 'Tap the matching symbol as fast as you can'],
+      duration: 'About 90 seconds'
+    },
+    flanker: {
+      text: 'A row of arrows appears. Your job is to identify which direction the <strong>center arrow</strong> is pointing — left or right. The surrounding arrows will try to distract you.',
+      steps: ['A row of arrows appears (e.g. ←← → ←←)', 'Focus on the CENTER arrow only', 'Tap Left or Right to match it'],
+      duration: 'About 60 seconds'
+    },
+    nback: {
+      text: 'Letters appear one at a time. You need to remember if the current letter matches the one from a few steps ago. This trains your working memory.',
+      steps: ['A letter appears briefly', 'Decide: does it match the letter from N steps back?', 'Tap "Match" or "No Match"'],
+      duration: 'About 60 seconds'
+    },
+    'task-switching': {
+      text: 'You\'ll see colored shapes. The rule switches between identifying the <strong>shape</strong> and identifying the <strong>color</strong>. Watch the instruction banner — it tells you which rule is active.',
+      steps: ['A colored shape appears', 'Check the rule: SHAPE or COLOR?', 'Tap the correct answer for the current rule'],
+      duration: 'About 60 seconds'
+    },
+    'speed-match': {
+      text: 'Cards appear one at a time. Does the current card match the previous one? You need to be fast AND accurate.',
+      steps: ['A card with a symbol appears', 'Compare it to the PREVIOUS card', 'Tap Yes (match) or No (different)'],
+      duration: 'About 60 seconds'
+    },
+    'visual-search': {
+      text: 'Find the target shape hidden among distractors. The target is shown at the top — tap it as fast as you can when you spot it in the field.',
+      steps: ['The target shape is shown at the top', 'Scan the field of shapes below', 'Tap the target when you find it'],
+      duration: 'About 60 seconds'
+    },
+    'pattern-matrix': {
+      text: 'A grid of shapes follows a pattern, but one piece is missing. Figure out the pattern and pick the piece that completes it.',
+      steps: ['Study the pattern in the grid', 'Find the missing piece (marked with ?)', 'Tap the correct piece from the options below'],
+      duration: 'About 90 seconds'
+    },
+    'sequence-memory': {
+      text: 'Watch a sequence of colored pads light up, then repeat the sequence from memory. It gets longer each round.',
+      steps: ['Watch the pads light up in order', 'Wait for your turn', 'Tap the pads in the same order'],
+      duration: 'About 90 seconds'
+    },
+    'go-no-go': {
+      text: 'Circles appear on screen. Tap when you see <strong>green</strong> (Go). Do NOT tap when you see <strong>red</strong> (No-Go). Speed matters, but so does restraint.',
+      steps: ['A colored circle appears', 'GREEN = tap it (or press Space)', 'RED = don\'t tap, just wait'],
+      duration: 'About 60 seconds'
+    },
+    'mental-rotation': {
+      text: 'Two shapes appear side by side. One may be rotated. Are they the <strong>same shape</strong>, or is one a <strong>mirror image</strong>?',
+      steps: ['Two shapes appear, one rotated', 'Mentally rotate them to compare', 'Tap "Same" or "Mirror"'],
+      duration: 'About 90 seconds'
+    },
+    'word-sprint': {
+      text: 'You\'re given a set of letters. Make as many words as you can before time runs out. Longer words score more points.',
+      steps: ['Study the available letters', 'Type a word using only those letters', 'Press Enter or tap Go to submit'],
+      duration: 'About 60 seconds'
+    },
+    'number-sense': {
+      text: 'Solve arithmetic problems as fast as you can. Each problem has a time limit — pick the correct answer from four options.',
+      steps: ['A math problem appears', 'Calculate the answer quickly', 'Tap the correct number'],
+      duration: 'About 90 seconds'
+    },
+    'dual-focus': {
+      text: 'Track moving objects on screen while answering questions about them. This tests your ability to divide your attention.',
+      steps: ['Watch the objects bounce around', 'A question appears about an object', 'Answer quickly — the objects keep moving'],
+      duration: 'About 90 seconds'
+    },
+    'trail-connect': {
+      text: 'Connect numbered and lettered dots in alternating order: 1 → A → 2 → B → 3 → C and so on. Go as fast as you can.',
+      steps: ['Find the next item in the sequence', 'Tap it (numbers and letters alternate)', 'Go fast — errors cost time but don\'t end the game'],
+      duration: 'About 60–90 seconds'
+    }
+  };
 
   function showScreen(name) {
     allScreens.forEach(function(s) {
@@ -469,11 +548,61 @@
     if (nameEl) nameEl.textContent = meta ? meta.name : exerciseKey;
     if (progressEl) progressEl.textContent = (engineState.currentExerciseIndex + 1) + ' / ' + engineState.sessionExercises.length;
 
-    // Show countdown then exercise
-    showCountdown(function() {
-      showScreen('exercise');
-      launchExercise(exerciseKey);
+    // Show instructions → user taps Ready → countdown → exercise
+    showInstructions(exerciseKey, function() {
+      showCountdown(function() {
+        showScreen('exercise');
+        launchExercise(exerciseKey);
+      });
     });
+  }
+
+  function showInstructions(exerciseKey, callback) {
+    var meta = EXERCISE_REGISTRY[exerciseKey];
+    var instructions = EXERCISE_INSTRUCTIONS[exerciseKey];
+
+    if (!instructions) {
+      // No instructions for this exercise — skip straight to countdown
+      callback();
+      return;
+    }
+
+    showScreen('instructions');
+
+    var iconEl = document.getElementById('instructions-icon');
+    var nameEl = document.getElementById('instructions-name');
+    var domainEl = document.getElementById('instructions-domain');
+    var textEl = document.getElementById('instructions-text');
+    var howEl = document.getElementById('instructions-how');
+    var durationEl = document.getElementById('instructions-duration');
+
+    if (iconEl) iconEl.textContent = meta ? meta.icon : '🧠';
+    if (nameEl) nameEl.textContent = meta ? meta.name : exerciseKey;
+    if (domainEl) domainEl.textContent = meta ? meta.domain.replace(/-/g, ' ') : '';
+    if (textEl) textEl.innerHTML = instructions.text;
+    if (durationEl) durationEl.textContent = instructions.duration;
+
+    if (howEl && instructions.steps) {
+      howEl.innerHTML =
+        '<div style="background: var(--kc-bg-panel); border-radius: var(--kc-radius-lg); padding: var(--kc-space-md);">' +
+          instructions.steps.map(function(step, i) {
+            return '<div style="display: flex; align-items: flex-start; gap: 12px;' + (i > 0 ? ' margin-top: 12px;' : '') + '">' +
+              '<div style="width: 24px; height: 24px; border-radius: 50%; background: var(--kc-blackberry); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>' +
+              '<div style="font-size: 15px; color: var(--kc-text-secondary); line-height: 1.5;">' + step + '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+    }
+
+    // Wire Ready button (remove old listener, add new one)
+    var readyBtn = document.getElementById('btn-ready');
+    if (readyBtn) {
+      var newBtn = readyBtn.cloneNode(true);
+      readyBtn.parentNode.replaceChild(newBtn, readyBtn);
+      newBtn.addEventListener('click', function() {
+        callback();
+      });
+    }
   }
 
   function showCountdown(callback) {
