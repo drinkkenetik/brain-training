@@ -4,7 +4,7 @@
    Local queue fallback for offline
    ========================================================================== */
 
-var CACHE_NAME = 'kenetik-circuit-v1';
+var CACHE_NAME = 'kenetik-circuit-v2';
 var STATIC_ASSETS = [
   '/',
   '/index.html',

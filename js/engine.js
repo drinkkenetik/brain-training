@@ -526,43 +526,71 @@
     var normalized = normalizeScore(exerciseKey, result);
     var points = 25; // Per exercise (Section 6.1)
 
-    // Personal best bonus
-    var isPB = false; // TODO: check against history
+    // Personal best detection
+    var isPB = false;
+    dbGetAll('scores', function(allScores) {
+      var prevBest = 0;
+      allScores.forEach(function(s) {
+        if (s.exercise === exerciseKey && (s.normalizedScore || 0) > prevBest) {
+          prevBest = s.normalizedScore;
+        }
+      });
+      if (normalized > prevBest && allScores.length > 0) {
+        isPB = true;
+        points += 50; // Personal best bonus (Section 6.1)
+        if (window.KCKlaviyo) {
+          window.KCKlaviyo.trackEvent('Brain Score Improved', {
+            exercise: exerciseKey, old_score: prevBest, new_score: normalized,
+            improvement_pct: prevBest > 0 ? Math.round(((normalized - prevBest) / prevBest) * 100) : 100
+          });
+        }
+        if (window.KCLoyaltyLion) {
+          window.KCLoyaltyLion.trackActivity('brain_personal_best', 50);
+        }
+      }
 
-    var scoreRecord = {
-      exercise: exerciseKey,
-      rawScore: result.score || 0,
-      accuracy: result.accuracy || 0,
-      avgRT: result.avgRT || 0,
-      normalizedScore: normalized,
-      difficulty: result.difficulty || 1,
-      inputDevice: engineState.inputDevice,
-      completed: result.completed !== false,
-      createdAt: new Date().toISOString(),
-      syncStatus: 'pending'
-    };
+      var scoreRecord = {
+        exercise: exerciseKey,
+        rawScore: result.score || 0,
+        accuracy: result.accuracy || 0,
+        avgRT: result.avgRT || 0,
+        normalizedScore: normalized,
+        difficulty: result.difficulty || 1,
+        inputDevice: engineState.inputDevice,
+        completed: result.completed !== false,
+        isPB: isPB,
+        createdAt: new Date().toISOString(),
+        syncStatus: 'pending'
+      };
 
-    // Save to IndexedDB immediately (Section 11.7.1)
-    dbPut('scores', scoreRecord);
+      // Save to IndexedDB immediately (Section 11.7.1)
+      dbPut('scores', scoreRecord);
 
-    engineState.sessionResults.push({
-      exercise: exerciseKey,
-      normalizedScore: normalized,
-      rawResult: result,
-      points: points
+      engineState.sessionResults.push({
+        exercise: exerciseKey,
+        normalizedScore: normalized,
+        rawResult: result,
+        points: points,
+        isPB: isPB
+      });
+      engineState.sessionPoints += points;
+
+      // Update difficulty based on recent trials (between exercises = between-session boundary)
+      if (result.trialAccuracies && result.trialAccuracies.length >= 10) {
+        updateDifficulty(exerciseKey, result.trialAccuracies, false);
+      }
+
+      // Fire per-exercise LoyaltyLion event
+      if (window.KCLoyaltyLion) {
+        window.KCLoyaltyLion.trackActivity('brain_exercise_complete', 25);
+      }
+
+      // Move to next exercise (300ms fade per Section 3.8)
+      engineState.currentExerciseIndex++;
+      setTimeout(function() {
+        runNextExercise();
+      }, 300);
     });
-    engineState.sessionPoints += points;
-
-    // Update difficulty based on recent trials (between exercises = between-session boundary)
-    if (result.trialAccuracies && result.trialAccuracies.length >= 10) {
-      updateDifficulty(exerciseKey, result.trialAccuracies, false);
-    }
-
-    // Move to next exercise (300ms fade per Section 3.8)
-    engineState.currentExerciseIndex++;
-    setTimeout(function() {
-      runNextExercise();
-    }, 300);
   }
 
   function finishSession() {
@@ -581,41 +609,136 @@
     };
     dbPut('sessions', sessionRecord);
 
-    // Compute Brain Score
-    dbGetAll('scores', function(allScores) {
-      computeBrainScore(allScores, function(brainData) {
-        showResults(brainData);
+    // Get previous Brain Score for change indicator
+    dbGet('state', 'prevBrainScore', function(prevData) {
+      var prevScore = prevData ? prevData.score : null;
 
-        // Fire events to gamification, Klaviyo, LoyaltyLion
-        if (window.KCGamification) {
-          window.KCGamification.onSessionComplete(engineState.sessionPoints, engineState.sessionResults);
-        }
-        if (window.KCKlaviyo) {
-          window.KCKlaviyo.trackSessionComplete({
-            exercises: engineState.sessionResults,
-            points: engineState.sessionPoints,
-            brainScore: brainData.score
+      // Compute new Brain Score
+      dbGetAll('scores', function(allScores) {
+        computeBrainScore(allScores, function(brainData) {
+          // Save current score for next comparison
+          dbPut('state', { key: 'prevBrainScore', score: brainData.score });
+
+          // Fire gamification events and get celebration data
+          var celebrations = null;
+          if (window.KCGamification) {
+            celebrations = window.KCGamification.onSessionComplete(engineState.sessionPoints, engineState.sessionResults);
+          }
+
+          // Check if this is baseline completion (first session)
+          var isBaseline = engineState.isFirstVisit && engineState.sessionDay === 1;
+          if (isBaseline) {
+            if (window.KCKlaviyo) {
+              window.KCKlaviyo.trackBaselineComplete(brainData.score);
+            }
+            if (window.KCLoyaltyLion) {
+              window.KCLoyaltyLion.trackActivity('brain_baseline_complete', 200);
+            }
+            engineState.sessionPoints += 200; // Baseline bonus
+          }
+
+          // Update persistent user state
+          dbGet('state', 'user', function(userState) {
+            userState = userState || { key: 'user' };
+            userState.totalPoints = (userState.totalPoints || 0) + engineState.sessionPoints;
+            userState.level = window.KCGamification ? window.KCGamification.getLevel() : 1;
+            userState.streak = window.KCGamification ? window.KCGamification.getStreak() : 0;
+            userState.lastSessionDate = new Date().toISOString();
+            userState.sessionDay = (userState.sessionDay || 0) + 1;
+            dbPut('state', userState);
           });
-        }
-        if (window.KCLoyaltyLion) {
-          window.KCLoyaltyLion.trackActivity('brain_daily_session', engineState.sessionPoints);
-        }
+
+          showResults(brainData, prevScore, celebrations);
+
+          // Fire Klaviyo + LoyaltyLion session events
+          if (window.KCKlaviyo) {
+            window.KCKlaviyo.trackSessionComplete({
+              exercises: engineState.sessionResults,
+              points: engineState.sessionPoints,
+              brainScore: brainData.score
+            });
+          }
+          if (window.KCLoyaltyLion) {
+            window.KCLoyaltyLion.trackActivity('brain_daily_session', engineState.sessionPoints);
+          }
+
+          // Fire celebration events
+          if (celebrations) {
+            if (celebrations.leveledUp && window.KCKlaviyo) {
+              window.KCKlaviyo.trackLevelUp(celebrations.newLevel, celebrations.levelTitle);
+            }
+            if (celebrations.streakMilestone && window.KCKlaviyo) {
+              window.KCKlaviyo.trackStreakMilestone(celebrations.streakMilestone);
+            }
+          }
+        });
       });
     });
   }
 
   // ===== RESULTS SCREEN (Section 5.5) =====
-  function showResults(brainData) {
+  function showResults(brainData, prevScore, celebrations) {
     showScreen('results');
 
+    // Score zone
     var scoreEl = document.getElementById('results-brain-score');
-    if (scoreEl) scoreEl.textContent = brainData.score;
+    if (scoreEl) {
+      scoreEl.textContent = brainData.score;
+      // Pulse in gold if any PB this session
+      var hasPB = engineState.sessionResults.some(function(r) { return r.isPB; });
+      if (hasPB) {
+        scoreEl.style.color = 'var(--kc-pineapple)';
+        setTimeout(function() { scoreEl.style.color = ''; }, 2000);
+      }
+    }
 
+    // Score change indicator
     var changeEl = document.getElementById('results-score-change');
-    // TODO: compare with previous session's score
-    if (changeEl) changeEl.textContent = '';
+    if (changeEl && prevScore !== null && prevScore !== undefined) {
+      var diff = brainData.score - prevScore;
+      if (diff > 0) {
+        changeEl.textContent = '+' + diff;
+        changeEl.className = 'kc-score-change kc-mt-xs kc-score-change--up';
+      } else if (diff < 0) {
+        changeEl.textContent = '' + diff;
+        changeEl.className = 'kc-score-change kc-mt-xs kc-score-change--down';
+      } else {
+        changeEl.textContent = '±0';
+        changeEl.className = 'kc-score-change kc-mt-xs';
+      }
+    } else {
+      if (changeEl) changeEl.textContent = '';
+    }
 
-    // Populate exercise summary tiles
+    // Celebration banner (Section 5.5.2: inline, not interstitial)
+    var celebrationEl = document.getElementById('results-celebration');
+    if (celebrationEl) {
+      if (celebrations && (celebrations.leveledUp || celebrations.streakMilestone)) {
+        celebrationEl.classList.remove('kc-hidden');
+        var html = '';
+        if (celebrations.leveledUp) {
+          html += '<div class="kc-celebration__title">Level ' + celebrations.newLevel + ': ' + celebrations.levelTitle + '</div>';
+          // Show what was unlocked
+          var unlocked = [];
+          Object.keys(EXERCISE_REGISTRY).forEach(function(key) {
+            if (EXERCISE_REGISTRY[key].unlockLevel === celebrations.newLevel) {
+              unlocked.push(EXERCISE_REGISTRY[key].name);
+            }
+          });
+          if (unlocked.length > 0) {
+            html += '<div class="kc-celebration__detail">' + unlocked.join(' and ') + ' unlocked</div>';
+          }
+        }
+        if (celebrations.streakMilestone) {
+          html += '<div class="kc-celebration__title">🔥 ' + celebrations.streakMilestone + '-day streak!</div>';
+        }
+        celebrationEl.innerHTML = html;
+      } else {
+        celebrationEl.classList.add('kc-hidden');
+      }
+    }
+
+    // Exercise summary tiles
     var exercisesEl = document.getElementById('results-exercises');
     if (exercisesEl) {
       exercisesEl.innerHTML = '';
@@ -623,42 +746,120 @@
         var meta = EXERCISE_REGISTRY[r.exercise];
         var tile = document.createElement('div');
         tile.className = 'kc-exercise-tile';
+        var pbBadge = r.isPB ? ' <span style="color: var(--kc-pineapple); font-size: 12px; font-weight: 700;">PB!</span>' : '';
         tile.innerHTML =
           '<div class="kc-exercise-tile__icon kc-domain-bg--' + (meta ? meta.domain : 'processing-speed') + '">' +
             (meta ? meta.icon : '🧠') +
           '</div>' +
           '<div style="flex:1;">' +
-            '<div class="kc-exercise-tile__name">' + (meta ? meta.name : r.exercise) + '</div>' +
+            '<div class="kc-exercise-tile__name">' + (meta ? meta.name : r.exercise) + pbBadge + '</div>' +
             '<div class="kc-exercise-tile__domain">Score: ' + Math.round(r.normalizedScore) + '</div>' +
           '</div>';
         exercisesEl.appendChild(tile);
       });
     }
 
+    // Points
     var pointsEl = document.getElementById('results-points');
     if (pointsEl) pointsEl.textContent = '+' + engineState.sessionPoints + ' Fuel Points';
 
-    // Update streak display
-    if (window.KCGamification) {
-      var streak = window.KCGamification.getStreak();
-      var streakEl = document.getElementById('results-streak');
-      if (streakEl) streakEl.textContent = streak;
-    }
+    // Streak
+    var streak = window.KCGamification ? window.KCGamification.getStreak() : 0;
+    var streakEl = document.getElementById('results-streak');
+    if (streakEl) streakEl.textContent = streak;
+
+    // Reward progress
+    var totalPoints = window.KCGamification ? window.KCGamification.getTotalPoints() : 0;
+    updateRewardProgress('results', totalPoints);
 
     // Single action prompt (Section 5.5.1: priority hierarchy)
     var actionEl = document.getElementById('results-action');
     if (actionEl) {
-      actionEl.innerHTML = '<p class="kc-caption" style="font-size: 15px;">See you tomorrow.</p>';
+      // Priority 1: consumption log
+      if (window.KCConsumption && window.KCConsumption.shouldShowLog()) {
+        actionEl.innerHTML =
+          '<div class="kc-card" style="text-align: center; padding: var(--kc-space-md);">' +
+            '<div class="kc-caption kc-mb-sm">How many Kenetik servings today?</div>' +
+            '<div style="display: flex; gap: 12px; justify-content: center;">' +
+              '<button class="kc-btn kc-btn--secondary" onclick="window.KCConsumption.logServings(1)" style="padding: 12px 24px;">1</button>' +
+              '<button class="kc-btn kc-btn--secondary" onclick="window.KCConsumption.logServings(2)" style="padding: 12px 24px;">2</button>' +
+              '<button class="kc-btn kc-btn--secondary" onclick="window.KCConsumption.logServings(3)" style="padding: 12px 24px;">3+</button>' +
+              '<button class="kc-btn kc-btn--ghost" onclick="this.closest(\'.kc-card\').remove()" style="padding: 12px;">Skip</button>' +
+            '</div>' +
+          '</div>';
+      } else {
+        actionEl.innerHTML = '';
+      }
+    }
+
+    // Update "See you tomorrow" button text
+    var doneBtn = document.getElementById('btn-results-done');
+    if (doneBtn) {
+      doneBtn.textContent = engineState.isFirstVisit ? 'Continue' : 'See you tomorrow';
+    }
+  }
+
+  // ===== REWARD PROGRESS =====
+  function updateRewardProgress(prefix, totalPoints) {
+    var tiers = [
+      { points: 1000, label: 'Free Shipping' },
+      { points: 2500, label: '10% Off' },
+      { points: 5000, label: 'Free Can' },
+      { points: 7500, label: '15% Off' },
+      { points: 10000, label: 'Free 3-Pack' }
+    ];
+
+    var nextTier = null;
+    for (var i = 0; i < tiers.length; i++) {
+      if (totalPoints < tiers[i].points) {
+        nextTier = tiers[i];
+        break;
+      }
+    }
+
+    var labelEl = document.getElementById(prefix + '-reward-label');
+    var barEl = document.getElementById(prefix + '-reward-progress');
+
+    if (nextTier) {
+      var remaining = nextTier.points - totalPoints;
+      var pct = (totalPoints / nextTier.points) * 100;
+      if (labelEl) labelEl.textContent = remaining + ' pts to ' + nextTier.label;
+      if (barEl) barEl.style.width = Math.min(100, pct) + '%';
+    } else {
+      if (labelEl) labelEl.textContent = 'All rewards unlocked!';
+      if (barEl) barEl.style.width = '100%';
     }
   }
 
   // ===== DASHBOARD RENDERING =====
   function renderDashboard(brainData, userState) {
+    // Brain Score
     var scoreEl = document.getElementById('dash-brain-score');
     if (scoreEl) scoreEl.textContent = brainData.score || '—';
 
+    // Score change from last session
+    var changeEl = document.getElementById('dash-score-change');
+    if (changeEl) {
+      dbGet('state', 'prevBrainScore', function(prevData) {
+        if (prevData && prevData.score !== undefined) {
+          var diff = brainData.score - prevData.score;
+          if (diff > 0) {
+            changeEl.textContent = '+' + diff + ' from last session';
+            changeEl.className = 'kc-score-change kc-mt-xs kc-score-change--up';
+          } else if (diff < 0) {
+            changeEl.textContent = '' + diff + ' from last session';
+            changeEl.className = 'kc-score-change kc-mt-xs kc-score-change--down';
+          } else {
+            changeEl.textContent = '';
+          }
+        }
+      });
+    }
+
+    // Streak (from gamification, not just userState)
+    var streak = window.KCGamification ? window.KCGamification.getStreak() : (userState.streak || 0);
     var streakEl = document.getElementById('dash-streak-count');
-    if (streakEl) streakEl.textContent = userState.streak || 0;
+    if (streakEl) streakEl.textContent = streak;
 
     // Partial domain note
     var partialNote = document.getElementById('dash-partial-note');
@@ -670,7 +871,11 @@
       partialNote.classList.add('kc-hidden');
     }
 
-    // Render exercise tiles
+    // Reward progress
+    var totalPoints = window.KCGamification ? window.KCGamification.getTotalPoints() : (userState.totalPoints || 0);
+    updateRewardProgress('dash', totalPoints);
+
+    // Render exercise preview tiles
     var exercisesEl = document.getElementById('dash-exercises');
     if (exercisesEl) {
       exercisesEl.innerHTML = '';
@@ -684,17 +889,17 @@
           '</div>' +
           '<div>' +
             '<div class="kc-exercise-tile__name">' + (meta ? meta.name : key) + '</div>' +
-            '<div class="kc-exercise-tile__domain">' + (meta ? meta.domain.replace(/-/g, ' ') : '') + '</div>' +
+            '<div class="kc-exercise-tile__domain" style="text-transform: capitalize;">' + (meta ? meta.domain.replace(/-/g, ' ') : '') + '</div>' +
           '</div>';
         exercisesEl.appendChild(tile);
       });
     }
 
-    // Update topbar
+    // Update persistent topbar
     var topbarStreak = document.getElementById('kc-topbar-streak');
-    if (topbarStreak) topbarStreak.textContent = userState.streak || 0;
+    if (topbarStreak) topbarStreak.textContent = streak;
     var topbarPoints = document.getElementById('kc-topbar-points');
-    if (topbarPoints) topbarPoints.textContent = (userState.totalPoints || 0) + ' FP';
+    if (topbarPoints) topbarPoints.textContent = totalPoints + ' FP';
   }
 
   // ===== INITIALIZATION =====
@@ -751,8 +956,9 @@
     if (startTrainingBtn) {
       startTrainingBtn.addEventListener('click', function() {
         // First visit: go straight to baseline (Day 1)
-        engineState.sessionExercises = ONRAMP_SESSIONS[1];
+        engineState.sessionExercises = ONRAMP_SESSIONS[1].slice();
         engineState.sessionDay = 1;
+        engineState.isFirstVisit = true;
         dbPut('state', { key: 'user', sessionDay: 1, streak: 0, totalPoints: 0, level: 1, identityState: 'anonymous' });
         startSession();
       });
@@ -807,13 +1013,14 @@
         if (window.KCIdentity) {
           window.KCIdentity.captureEmail(email);
         }
-        goToDashboard();
+        setTimeout(goToDashboard, 300);
       });
     }
 
     if (gateSkipBtn) {
       gateSkipBtn.addEventListener('click', function() {
-        goToDashboard();
+        // Small delay to let finishSession async writes complete
+        setTimeout(goToDashboard, 300);
       });
     }
 
@@ -863,7 +1070,24 @@
     state: engineState,
     dbPut: dbPut,
     dbGet: dbGet,
-    dbGetAll: dbGetAll
+    dbGetAll: dbGetAll,
+    goToDashboard: goToDashboard,
+    // Test helper: skip current exercise with a fake result
+    _debugSkipExercise: function() {
+      var idx = engineState.currentExerciseIndex;
+      var key = engineState.sessionExercises[idx];
+      if (!key) return 'no exercise at index ' + idx;
+      // Cancel any active countdown and go straight to complete
+      handleExerciseComplete(key, {
+        score: 70 + Math.floor(Math.random() * 20),
+        accuracy: 70 + Math.floor(Math.random() * 25),
+        avgRT: 400 + Math.floor(Math.random() * 300),
+        totalTrials: 20, correctTrials: 15, difficulty: 1,
+        trialAccuracies: Array(20).fill(1).map(function() { return Math.random() > 0.25 ? 1 : 0; }),
+        completed: true
+      });
+      return 'skipped ' + key;
+    }
   };
 
   // Initialize on DOM ready
