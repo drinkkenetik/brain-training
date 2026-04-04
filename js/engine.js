@@ -499,6 +499,14 @@
 
   function launchExercise(exerciseKey) {
     _exerciseCompleting = false; // Reset guard for new exercise
+
+    // Ensure header is correct (redundant with runNextExercise, but guards against race)
+    var meta = EXERCISE_REGISTRY[exerciseKey];
+    var nameEl = document.getElementById('exercise-name');
+    var progressEl = document.getElementById('exercise-progress');
+    if (nameEl) nameEl.textContent = meta ? meta.name : exerciseKey;
+    if (progressEl) progressEl.textContent = (engineState.currentExerciseIndex + 1) + ' / ' + engineState.sessionExercises.length;
+
     var area = document.getElementById('exercise-area');
     if (!area) return;
     area.innerHTML = '';

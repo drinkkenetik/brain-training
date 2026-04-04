@@ -4,7 +4,7 @@
    Local queue fallback for offline
    ========================================================================== */
 
-var CACHE_NAME = 'kenetik-circuit-v2';
+var CACHE_NAME = 'kenetik-circuit-v3';
 var STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -16,11 +16,25 @@ var STATIC_ASSETS = [
   '/js/loyaltylion.js',
   '/js/klaviyo.js',
   '/js/consumption.js',
+  '/js/challenges.js',
+  '/js/badges.js',
+  '/js/share-card.js',
+  '/js/leaderboard.js',
   '/exercises/stroop.js',
   '/exercises/dsst.js',
   '/exercises/flanker.js',
   '/exercises/nback.js',
-  '/exercises/task-switching.js'
+  '/exercises/task-switching.js',
+  '/exercises/speed-match.js',
+  '/exercises/visual-search.js',
+  '/exercises/pattern-matrix.js',
+  '/exercises/sequence-memory.js',
+  '/exercises/go-no-go.js',
+  '/exercises/mental-rotation.js',
+  '/exercises/word-sprint.js',
+  '/exercises/number-sense.js',
+  '/exercises/dual-focus.js',
+  '/exercises/trail-connect.js'
 ];
 
 // Install: cache static assets
