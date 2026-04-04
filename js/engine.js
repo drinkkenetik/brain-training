@@ -687,6 +687,31 @@
               window.KCKlaviyo.trackStreakMilestone(celebrations.streakMilestone);
             }
           }
+
+          // Update weekly challenge progress
+          if (window.KCChallenges) {
+            var challengeResult = window.KCChallenges.updateProgress({
+              results: engineState.sessionResults,
+              brainScore: brainData.score
+            });
+            if (challengeResult && challengeResult.completed) {
+              // Add challenge completion to celebrations
+              if (!celebrations) celebrations = {};
+              celebrations.challengeCompleted = challengeResult;
+            }
+          }
+
+          // Check for new badges
+          if (window.KCBadges) {
+            var newBadges = window.KCBadges.onSessionComplete({
+              results: engineState.sessionResults,
+              brainScore: brainData.score
+            });
+            if (newBadges && newBadges.length > 0) {
+              if (!celebrations) celebrations = {};
+              celebrations.newBadges = newBadges;
+            }
+          }
         });
       });
     });
@@ -729,12 +754,12 @@
     // Celebration banner (Section 5.5.2: inline, not interstitial)
     var celebrationEl = document.getElementById('results-celebration');
     if (celebrationEl) {
-      if (celebrations && (celebrations.leveledUp || celebrations.streakMilestone)) {
+      var hasCelebration = celebrations && (celebrations.leveledUp || celebrations.streakMilestone || celebrations.challengeCompleted || celebrations.newBadges);
+      if (hasCelebration) {
         celebrationEl.classList.remove('kc-hidden');
         var html = '';
         if (celebrations.leveledUp) {
           html += '<div class="kc-celebration__title">Level ' + celebrations.newLevel + ': ' + celebrations.levelTitle + '</div>';
-          // Show what was unlocked
           var unlocked = [];
           Object.keys(EXERCISE_REGISTRY).forEach(function(key) {
             if (EXERCISE_REGISTRY[key].unlockLevel === celebrations.newLevel) {
@@ -748,7 +773,22 @@
         if (celebrations.streakMilestone) {
           html += '<div class="kc-celebration__title">🔥 ' + celebrations.streakMilestone + '-day streak!</div>';
         }
+        if (celebrations.challengeCompleted) {
+          html += '<div class="kc-celebration__title">🏆 Weekly Challenge Complete!</div>';
+          html += '<div class="kc-celebration__detail">' + celebrations.challengeCompleted.name + ' — +200 Fuel Points</div>';
+        }
+        if (celebrations.newBadges) {
+          celebrations.newBadges.forEach(function(badge) {
+            html += '<div class="kc-celebration__title">' + badge.icon + ' Badge Unlocked: ' + badge.name + '</div>';
+            html += '<div class="kc-celebration__detail">' + badge.description + '</div>';
+          });
+        }
         celebrationEl.innerHTML = html;
+
+        // Confetti for streak milestones and level-ups (Section 3.8)
+        if (celebrations.streakMilestone || celebrations.leveledUp) {
+          setTimeout(confettiBurst, 300);
+        }
       } else {
         celebrationEl.classList.add('kc-hidden');
       }
@@ -792,7 +832,11 @@
     var actionEl = document.getElementById('results-action');
     if (actionEl) {
       // Priority 1: consumption log
-      if (window.KCConsumption && window.KCConsumption.shouldShowLog()) {
+      // Priority hierarchy (Section 5.5.1): one ask max
+      var actionShown = false;
+
+      // Priority 1: Consumption log
+      if (!actionShown && window.KCConsumption && window.KCConsumption.shouldShowLog()) {
         actionEl.innerHTML =
           '<div class="kc-card" style="text-align: center; padding: var(--kc-space-md);">' +
             '<div class="kc-caption kc-mb-sm">How many Kenetik servings today?</div>' +
@@ -803,7 +847,44 @@
               '<button class="kc-btn kc-btn--ghost" onclick="this.closest(\'.kc-card\').remove()" style="padding: 12px;">Skip</button>' +
             '</div>' +
           '</div>';
-      } else {
+        actionShown = true;
+      }
+
+      // Priority 2: Restock prompt (if <5 days remaining)
+      if (!actionShown && window.KCConsumption) {
+        var daysRemaining = window.KCConsumption.getEstimatedDaysRemaining();
+        if (daysRemaining !== null && daysRemaining < 5) {
+          actionEl.innerHTML =
+            '<div class="kc-card" style="text-align: center; padding: var(--kc-space-md);">' +
+              '<div class="kc-caption kc-mb-sm">Running low?</div>' +
+              '<a href="https://drinkkenetik.com/collections/all" target="_blank" class="kc-btn kc-btn--primary" style="padding: 12px 32px;">Restock</a>' +
+            '</div>';
+          actionShown = true;
+        }
+      }
+
+      // Priority 3: Share prompt (if milestone hit)
+      var hasMilestone = celebrations && (celebrations.leveledUp || celebrations.streakMilestone ||
+        engineState.sessionResults.some(function(r) { return r.isPB; }));
+      if (!actionShown && hasMilestone && window.KCShareCard) {
+        actionEl.innerHTML =
+          '<div class="kc-card" style="text-align: center; padding: var(--kc-space-md);">' +
+            '<div class="kc-caption kc-mb-sm">Share your achievement</div>' +
+            '<button class="kc-btn kc-btn--secondary" id="btn-share-card" style="padding: 12px 32px;">📤 Share Brain Score</button>' +
+          '</div>';
+        var shareBtn = document.getElementById('btn-share-card');
+        if (shareBtn) {
+          shareBtn.addEventListener('click', function() {
+            dbGet('state', 'user', function(us) {
+              window.KCShareCard.shareCard(brainData, us || {});
+            });
+          });
+        }
+        actionShown = true;
+      }
+
+      // Priority 4: Nothing — just clear
+      if (!actionShown) {
         actionEl.innerHTML = '';
       }
     }
@@ -916,6 +997,28 @@
     if (topbarStreak) topbarStreak.textContent = streak;
     var topbarPoints = document.getElementById('kc-topbar-points');
     if (topbarPoints) topbarPoints.textContent = totalPoints + ' FP';
+
+    // === SECONDARY SECTION ===
+
+    // Weekly Challenge
+    var challengeEl = document.getElementById('dash-challenge');
+    if (challengeEl && window.KCChallenges) {
+      challengeEl.innerHTML = window.KCChallenges.renderChallengeCard();
+    }
+
+    // Badges
+    var badgesEl = document.getElementById('dash-badges');
+    if (badgesEl && window.KCBadges) {
+      badgesEl.innerHTML = window.KCBadges.renderBadgeGrid();
+    }
+
+    // Leaderboard preview
+    var leaderboardEl = document.getElementById('dash-leaderboard');
+    if (leaderboardEl && window.KCLeaderboard) {
+      window.KCLeaderboard.fetchLeaderboard('global', function(entries) {
+        leaderboardEl.innerHTML = window.KCLeaderboard.renderLeaderboard(entries);
+      });
+    }
   }
 
   // ===== INITIALIZATION =====
@@ -1070,6 +1173,27 @@
         });
       });
     });
+  }
+
+  // ===== CONFETTI (Section 3.8: brand colors only, subtle burst) =====
+  function confettiBurst() {
+    var colors = ['#E03D1A', '#269DD2', '#D01483', '#F06925', '#FBB11B', '#13286D'];
+    var container = document.createElement('div');
+    container.className = 'kc-confetti-container';
+    document.body.appendChild(container);
+
+    for (var i = 0; i < 30; i++) {
+      var piece = document.createElement('div');
+      piece.className = 'kc-confetti-piece';
+      piece.style.left = (20 + Math.random() * 60) + '%';
+      piece.style.top = (10 + Math.random() * 30) + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = (Math.random() * 0.5) + 's';
+      piece.style.animationDuration = (1 + Math.random() * 1) + 's';
+      container.appendChild(piece);
+    }
+
+    setTimeout(function() { container.remove(); }, 2500);
   }
 
   // ===== PUBLIC API =====
