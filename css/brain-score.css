@@ -68,6 +68,14 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent iOS text size adjust on rotation */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Remove 300ms tap delay globally */
+a, button, input, select, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -595,11 +603,12 @@ h1, h2, h3, h4, h5, h6 {
     padding: 12px;
   }
 
-  /* Ensure tap targets are large enough */
+  /* Ensure tap targets are large enough (Section 3.7: 48px min) */
   .kc-response-btn {
     min-height: 48px;
     min-width: 48px;
     font-size: 14px;
+    padding: 12px 20px;
   }
 
   /* Full-width buttons on mobile */
@@ -610,6 +619,30 @@ h1, h2, h3, h4, h5, h6 {
   /* Tighten spacing on small screens */
   .kc-mb-xl { margin-bottom: 32px; }
   .kc-mt-xl { margin-top: 32px; }
+
+  /* Exercise area fills viewport */
+  .kc-exercise-area {
+    min-height: calc(100vh - 200px);
+    padding: var(--kc-space-sm);
+  }
+
+  /* Prevent iOS zoom on inputs (must be >= 16px) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Touch-friendly: larger hit areas on small screens */
+@media (max-width: 480px) {
+  .kc-response-btn {
+    min-height: 52px;
+    font-size: 15px;
+  }
+
+  .kc-btn--primary {
+    min-height: 52px;
+    font-size: 17px;
+  }
 }
 
 /* --- Safe area padding for notched devices --- */
