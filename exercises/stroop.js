@@ -45,12 +45,23 @@
       results: [],
       currentTrial: 0,
       trialStart: 0,
-      awaitingResponse: false
+      awaitingResponse: false,
+      practiceMode: true,
+      practiceTrials: [],
+      practiceIndex: 0,
+      practiceCount: 3
     };
+
+    // Generate 3 practice trials (1 congruent, 2 incongruent) with extra feedback
+    state.practiceTrials = [
+      { word: 'RED', inkColor: 'red', congruent: true },
+      { word: 'GREEN', inkColor: 'blue', congruent: false },
+      { word: 'YELLOW', inkColor: 'green', congruent: false }
+    ];
 
     state.trials = generateTrials();
     render();
-    presentTrial();
+    presentPractice();
   }
 
   function generateTrials() {
@@ -129,6 +140,72 @@
     }
   }
 
+  // ===== PRACTICE MODE =====
+  function presentPractice() {
+    if (state.practiceIndex >= state.practiceTrials.length) {
+      // Practice done — show "now for real" message, then start scored trials
+      var stimEl = document.getElementById('stroop-stimulus');
+      var progressEl = document.getElementById('stroop-progress');
+      var typeEl = document.getElementById('stroop-trial-type');
+      var feedbackEl = document.getElementById('stroop-feedback');
+
+      if (typeEl) typeEl.textContent = '';
+      if (progressEl) progressEl.textContent = '';
+      if (feedbackEl) feedbackEl.textContent = '';
+      if (stimEl) {
+        stimEl.innerHTML =
+          '<div style="text-align: center;">' +
+            '<div style="font-size: 18px; font-weight: 700; color: var(--kc-blackberry); margin-bottom: 8px;">Got it? Great.</div>' +
+            '<div style="font-size: 15px; color: var(--kc-text-secondary);">Now the real test begins.</div>' +
+          '</div>';
+      }
+      state.practiceMode = false;
+      setTimeout(function() {
+        presentTrial();
+      }, 1800);
+      return;
+    }
+
+    var trial = state.practiceTrials[state.practiceIndex];
+    var stimEl = document.getElementById('stroop-stimulus');
+    var progressEl = document.getElementById('stroop-progress');
+    var barEl = document.getElementById('stroop-bar');
+    var typeEl = document.getElementById('stroop-trial-type');
+    var feedbackEl = document.getElementById('stroop-feedback');
+
+    if (typeEl) typeEl.textContent = 'PRACTICE';
+    if (progressEl) progressEl.textContent = 'Practice ' + (state.practiceIndex + 1) + ' of ' + state.practiceCount;
+    if (barEl) barEl.style.width = '0%';
+    if (feedbackEl) feedbackEl.textContent = '';
+
+    state.awaitingResponse = false;
+    if (stimEl) {
+      stimEl.innerHTML = '<span style="font-size: 48px; color: var(--kc-text-light);">+</span>';
+      setTimeout(function() {
+        stimEl.innerHTML = '<span style="font-family: var(--kc-font-heading); font-size: 64px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: ' + COLOR_HEX[trial.inkColor] + ';">' + trial.word + '</span>';
+        state.trialStart = performance.now();
+        state.awaitingResponse = true;
+      }, 400);
+    }
+  }
+
+  function handlePracticeResponse(selectedColor) {
+    var trial = state.practiceTrials[state.practiceIndex];
+    var correct = selectedColor === trial.inkColor;
+    var feedbackEl = document.getElementById('stroop-feedback');
+
+    if (feedbackEl) {
+      if (correct) {
+        feedbackEl.innerHTML = '<span style="color: var(--kc-success);">✓ Correct! The ink color is ' + trial.inkColor + '.</span>';
+      } else {
+        feedbackEl.innerHTML = '<span style="color: var(--kc-error);">✗ The word says "' + trial.word + '" but the ink color is <strong>' + trial.inkColor + '</strong>.</span>';
+      }
+    }
+
+    state.practiceIndex++;
+    setTimeout(presentPractice, 1500);
+  }
+
   function presentTrial() {
     if (state.currentTrial >= state.trials.length) {
       finishGame();
@@ -164,6 +241,12 @@
   function handleResponse(selectedColor) {
     if (!state.awaitingResponse) return;
     state.awaitingResponse = false;
+
+    // Route to practice handler if in practice mode
+    if (state.practiceMode) {
+      handlePracticeResponse(selectedColor);
+      return;
+    }
 
     var rt = performance.now() - state.trialStart;
     var normalizedRt = normalizeRT(rt);
