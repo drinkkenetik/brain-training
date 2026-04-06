@@ -121,7 +121,24 @@
   function getStreak() { return gameState.streak; }
   function getLevel() { return gameState.level; }
   function getTotalPoints() { return gameState.totalPoints; }
+  function getStreakFreezes() { return gameState.streakFreezes; }
   function getState() { return gameState; }
+
+  function isInRecoveryWindow() {
+    if (!gameState.lastSessionDate || gameState.streak > 0) return false;
+    var daysMissed = Math.floor((Date.now() - new Date(gameState.lastSessionDate).getTime()) / 86400000);
+    return daysMissed <= 2; // 24-hour recovery window (with some buffer)
+  }
+
+  function getStreakStatus() {
+    if (gameState.streak > 0) {
+      return { status: 'active', days: gameState.streak, freezes: gameState.streakFreezes };
+    }
+    if (isInRecoveryWindow()) {
+      return { status: 'recovery', days: 0, freezes: gameState.streakFreezes, message: 'Complete a session to restore your streak.' };
+    }
+    return { status: 'broken', days: 0, freezes: gameState.streakFreezes };
+  }
 
   loadState();
 
@@ -130,6 +147,8 @@
     getStreak: getStreak,
     getLevel: getLevel,
     getTotalPoints: getTotalPoints,
+    getStreakFreezes: getStreakFreezes,
+    getStreakStatus: getStreakStatus,
     getLevelTitle: getLevelTitle,
     getState: getState,
     LEVEL_THRESHOLDS: LEVEL_THRESHOLDS

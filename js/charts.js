@@ -140,9 +140,83 @@
     });
   }
 
+  // Sparkline trend chart for Brain Score history
+  function renderSparkline(containerId, history, width, height) {
+    var el = document.getElementById(containerId);
+    if (!el || !history || history.length < 2) {
+      if (el) el.innerHTML = '<div class="kc-caption kc-text-center" style="padding: 16px;">Complete more sessions to see your trend.</div>';
+      return;
+    }
+
+    width = width || 300;
+    height = height || 80;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = width * 2; // 2x for retina
+    canvas.height = height * 2;
+    canvas.style.cssText = 'width: ' + width + 'px; height: ' + height + 'px;';
+    el.innerHTML = '';
+    el.appendChild(canvas);
+
+    var ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+
+    var scores = history.map(function(h) { return h.score; });
+    var minScore = Math.max(0, Math.min.apply(null, scores) - 10);
+    var maxScore = Math.min(100, Math.max.apply(null, scores) + 10);
+    var range = maxScore - minScore || 1;
+    var padding = 8;
+    var drawW = width - padding * 2;
+    var drawH = height - padding * 2;
+
+    // Draw line
+    ctx.beginPath();
+    ctx.strokeStyle = '#E03D1A';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+
+    scores.forEach(function(score, i) {
+      var x = padding + (i / (scores.length - 1)) * drawW;
+      var y = padding + drawH - ((score - minScore) / range) * drawH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Fill area under line
+    var lastX = padding + drawW;
+    var lastY = padding + drawH - ((scores[scores.length - 1] - minScore) / range) * drawH;
+    ctx.lineTo(lastX, padding + drawH);
+    ctx.lineTo(padding, padding + drawH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(224, 61, 26, 0.08)';
+    ctx.fill();
+
+    // Draw dots on last 3 points
+    var dotStart = Math.max(0, scores.length - 3);
+    for (var i = dotStart; i < scores.length; i++) {
+      var x = padding + (i / (scores.length - 1)) * drawW;
+      var y = padding + drawH - ((scores[i] - minScore) / range) * drawH;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = i === scores.length - 1 ? '#E03D1A' : '#F5F0E8';
+      ctx.fill();
+      ctx.strokeStyle = '#E03D1A';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Score label on last point
+    ctx.font = '700 11px "Jost", sans-serif';
+    ctx.fillStyle = '#E03D1A';
+    ctx.textAlign = 'center';
+    ctx.fillText(scores[scores.length - 1], lastX, lastY - 10);
+  }
+
   window.KCCharts = {
     renderDomainBars: renderDomainBars,
     renderRadarChart: renderRadarChart,
+    renderSparkline: renderSparkline,
     DOMAIN_CONFIG: DOMAIN_CONFIG
   };
 

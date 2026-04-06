@@ -784,6 +784,14 @@
           // Save current score for next comparison
           dbPut('state', { key: 'prevBrainScore', score: brainData.score });
 
+          // Append to score history for trend display
+          dbGet('state', 'scoreHistory', function(histData) {
+            var history = (histData && histData.scores) ? histData.scores : [];
+            history.push({ score: brainData.score, date: new Date().toISOString() });
+            if (history.length > 30) history = history.slice(-30); // Keep last 30
+            dbPut('state', { key: 'scoreHistory', scores: history });
+          });
+
           // Fire gamification events and get celebration data
           var celebrations = null;
           if (window.KCGamification) {
@@ -1164,6 +1172,17 @@
     if (topbarPoints) topbarPoints.textContent = totalPoints + ' FP';
 
     // === SECONDARY SECTION ===
+
+    // Score history sparkline
+    if (window.KCCharts) {
+      dbGet('state', 'scoreHistory', function(histData) {
+        var history = (histData && histData.scores) ? histData.scores : [];
+        var sparkEl = document.getElementById('dash-sparkline');
+        if (sparkEl) {
+          window.KCCharts.renderSparkline('dash-sparkline', history, sparkEl.offsetWidth || 300, 80);
+        }
+      });
+    }
 
     // Radar chart
     if (window.KCCharts) {
