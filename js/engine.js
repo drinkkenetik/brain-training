@@ -71,6 +71,17 @@
     7: null
   };
 
+  // First-week onramp post-session messages (Section 5.4.2)
+  var ONRAMP_MESSAGES = {
+    1: { headline: 'Your first Brain Score is in.', detail: 'This is your baseline. Come back tomorrow to start improving.' },
+    2: { headline: 'You just trained 3 new cognitive skills.', detail: 'Variety is how your brain grows. Each exercise targets a different domain.' },
+    3: { headline: 'Your brain is adapting.', detail: 'The exercises adjust to your level. The better you get, the harder they get.' },
+    4: { headline: 'Your daily workout is now personalized.', detail: 'The algorithm picks exercises based on what you need most.' },
+    5: { headline: 'All 6 cognitive domains tested.', detail: 'Your full Brain Score is live. This is the real you.' },
+    6: { headline: 'Six days strong.', detail: 'Tomorrow is your weekly recap — see how far you\'ve come.' },
+    7: { headline: 'Week 1 complete.', detail: 'You\'ve built a foundation. Now the real training begins.' }
+  };
+
   // Input device latency offsets (Section 11.5)
   var LATENCY_OFFSETS = {
     mouse: -30,
@@ -880,6 +891,11 @@
       if (changeEl) changeEl.textContent = '';
     }
 
+    // Domain bars chart
+    if (window.KCCharts) {
+      window.KCCharts.renderDomainBars('results-domain-bars', brainData.domains || {});
+    }
+
     // Celebration banner (Section 5.5.2: inline, not interstitial)
     var celebrationEl = document.getElementById('results-celebration');
     if (celebrationEl) {
@@ -1018,6 +1034,17 @@
       }
     }
 
+    // Onramp message for first week (Section 5.4.2)
+    var onrampMsg = ONRAMP_MESSAGES[engineState.sessionDay];
+    if (onrampMsg && actionEl) {
+      var msgHTML = '<div style="text-align: center; margin-top: var(--kc-space-sm);">' +
+        '<div style="font-size: 17px; font-weight: 700; color: var(--kc-blackberry); margin-bottom: 4px;">' + onrampMsg.headline + '</div>' +
+        '<div class="kc-caption">' + onrampMsg.detail + '</div>' +
+      '</div>';
+      // Append after any action prompt, or show standalone
+      actionEl.innerHTML = (actionEl.innerHTML || '') + msgHTML;
+    }
+
     // Update "See you tomorrow" button text
     var doneBtn = document.getElementById('btn-results-done');
     if (doneBtn) {
@@ -1128,6 +1155,11 @@
     if (topbarPoints) topbarPoints.textContent = totalPoints + ' FP';
 
     // === SECONDARY SECTION ===
+
+    // Radar chart
+    if (window.KCCharts) {
+      window.KCCharts.renderRadarChart('dash-radar-chart', brainData.domains || {}, 220);
+    }
 
     // Weekly Challenge
     var challengeEl = document.getElementById('dash-challenge');
