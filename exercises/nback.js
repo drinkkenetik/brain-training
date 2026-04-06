@@ -34,11 +34,33 @@
       sequence: generateSequence(),
       results: [],
       currentTrial: 0,
-      responded: false
+      responded: false,
+      practiceMode: true,
+      practiceIndex: 0,
+      practiceSequence: []
     };
 
+    // Generate practice: for 1-back, show A, B, B (match!), C
+    // For 2-back: A, B, A (match!), C, B (match!)
+    if (config.nLevel === 1) {
+      state.practiceSequence = [
+        { letter: 'A', isMatch: false, explain: 'First letter — just remember it.' },
+        { letter: 'B', isMatch: false, explain: 'B ≠ A — not a match.' },
+        { letter: 'B', isMatch: true, explain: 'B = B — that\'s a match! (same as 1 step ago)' },
+        { letter: 'D', isMatch: false, explain: 'D ≠ B — not a match.' }
+      ];
+    } else {
+      state.practiceSequence = [
+        { letter: 'A', isMatch: false, explain: 'First letter — just remember it.' },
+        { letter: 'B', isMatch: false, explain: 'Second letter — remember both.' },
+        { letter: 'A', isMatch: true, explain: 'A = A — match! (same as ' + config.nLevel + ' steps ago)' },
+        { letter: 'C', isMatch: false, explain: 'C ≠ B — not a match.' },
+        { letter: 'A', isMatch: true, explain: 'A = A — match! (same as ' + config.nLevel + ' steps ago)' }
+      ];
+    }
+
     render();
-    presentTrial();
+    presentPractice();
   }
 
   function generateSequence() {
@@ -105,6 +127,67 @@
     if (e.key === 'n' || e.key === 'N') { e.preventDefault(); handleResponse(false); }
   }
 
+  // ===== PRACTICE MODE =====
+  function presentPractice() {
+    if (state.practiceIndex >= state.practiceSequence.length) {
+      // Practice complete — transition to real test
+      var stimEl = document.getElementById('nback-stimulus');
+      var progressEl = document.getElementById('nback-progress');
+      var feedbackEl = document.getElementById('nback-feedback');
+      if (progressEl) progressEl.textContent = '';
+      if (feedbackEl) feedbackEl.textContent = '';
+      if (stimEl) {
+        stimEl.innerHTML = '<div style="text-align: center;">' +
+          '<div style="font-size: 18px; font-weight: 700; color: var(--kc-blackberry); margin-bottom: 8px;">Nice! You\'ve got it.</div>' +
+          '<div style="font-size: 15px; color: var(--kc-text-secondary);">Now the real test begins.</div>' +
+        '</div>';
+      }
+      state.practiceMode = false;
+      setTimeout(function() { presentTrial(); }, 1800);
+      return;
+    }
+
+    state.responded = false;
+    var trial = state.practiceSequence[state.practiceIndex];
+    var stimEl = document.getElementById('nback-stimulus');
+    var progressEl = document.getElementById('nback-progress');
+    var feedbackEl = document.getElementById('nback-feedback');
+
+    if (progressEl) progressEl.textContent = 'Practice ' + (state.practiceIndex + 1) + ' of ' + state.practiceSequence.length;
+    if (feedbackEl) feedbackEl.textContent = '';
+
+    // For first N trials (before matches are possible), auto-advance with explanation
+    if (state.practiceIndex < config.nLevel) {
+      if (stimEl) {
+        stimEl.innerHTML = '<span style="font-family: var(--kc-font-heading); font-size: 80px; font-weight: 700; color: var(--kc-blackberry);">' + trial.letter + '</span>';
+      }
+      if (feedbackEl) {
+        feedbackEl.innerHTML = '<span style="color: var(--kc-text-secondary);">' + trial.explain + '</span>';
+      }
+      state.practiceIndex++;
+      setTimeout(presentPractice, 2200);
+      return;
+    }
+
+    if (stimEl) {
+      stimEl.innerHTML = '<span style="font-family: var(--kc-font-heading); font-size: 80px; font-weight: 700; color: var(--kc-blackberry);">' + trial.letter + '</span>';
+    }
+  }
+
+  function handlePracticeResponse(saidMatch) {
+    var trial = state.practiceSequence[state.practiceIndex];
+    var correct = saidMatch === trial.isMatch;
+    var feedbackEl = document.getElementById('nback-feedback');
+
+    if (feedbackEl) {
+      var prefix = correct ? '<span style="color:var(--kc-success);">✓ Correct!</span> ' : '<span style="color:var(--kc-error);">✗ Not quite.</span> ';
+      feedbackEl.innerHTML = prefix + '<span style="color: var(--kc-text-secondary);">' + trial.explain + '</span>';
+    }
+
+    state.practiceIndex++;
+    setTimeout(presentPractice, 2200);
+  }
+
   function presentTrial() {
     if (state.currentTrial >= state.sequence.length) { finishGame(); return; }
 
@@ -143,8 +226,14 @@
   function handleResponse(saidMatch) {
     if (state.responded) return;
     state.responded = true;
-    clearTimeout(trialTimer);
 
+    // Route to practice handler if in practice mode
+    if (state.practiceMode) {
+      handlePracticeResponse(saidMatch);
+      return;
+    }
+
+    clearTimeout(trialTimer);
     var trial = state.sequence[state.currentTrial];
     var correct = saidMatch === trial.isMatch;
 

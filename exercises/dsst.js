@@ -53,9 +53,12 @@
       state.symbolMap[k + 1] = shuffled[k];
     }
 
+    state.practiceMode = true;
+    state.practiceCount = 0;
+    state.practiceTarget = 3;
+
     render();
-    startTimer();
-    nextDigit();
+    nextDigit(); // Start with practice — no timer yet
   }
 
   function render() {
@@ -136,10 +139,47 @@
   function handleResponse(selectedSymbol) {
     if (!state.active) return;
 
-    var rt = performance.now() - state.trialStart;
-    var normalizedRt = normalizeRT(rt);
     var correctSymbol = state.symbolMap[state.currentDigit];
     var correct = selectedSymbol === correctSymbol;
+
+    // Practice mode: teach, don't score
+    if (state.practiceMode) {
+      var feedbackEl = document.getElementById('dsst-feedback');
+      var timerEl = document.getElementById('dsst-timer');
+      if (correct) {
+        if (feedbackEl) { feedbackEl.textContent = '✓ Correct!'; feedbackEl.style.color = 'var(--kc-success)'; }
+        state.practiceCount++;
+        if (state.practiceCount >= state.practiceTarget) {
+          // Practice done — transition to real test
+          state.practiceMode = false;
+          if (feedbackEl) {
+            feedbackEl.innerHTML = '<span style="color: var(--kc-blackberry); font-weight: 700;">Got it! Timer starts now.</span>';
+          }
+          setTimeout(function() {
+            if (feedbackEl) feedbackEl.textContent = '';
+            if (timerEl) timerEl.style.color = '';
+            state.score = 0;
+            var scoreEl = document.getElementById('dsst-score');
+            if (scoreEl) scoreEl.textContent = '0';
+            startTimer();
+            nextDigit();
+          }, 1200);
+          return;
+        }
+      } else {
+        if (feedbackEl) {
+          feedbackEl.innerHTML = '✗ Look at the key — digit ' + state.currentDigit + ' = ' + correctSymbol;
+          feedbackEl.style.color = 'var(--kc-error)';
+        }
+      }
+      if (timerEl) timerEl.textContent = 'PRACTICE';
+      setTimeout(function() { if (feedbackEl) feedbackEl.textContent = ''; nextDigit(); }, 1000);
+      return;
+    }
+
+    // Real mode: score normally
+    var rt = performance.now() - state.trialStart;
+    var normalizedRt = normalizeRT(rt);
 
     state.results.push({
       digit: state.currentDigit,
