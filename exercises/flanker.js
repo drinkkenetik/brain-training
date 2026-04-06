@@ -39,11 +39,18 @@
       results: [],
       currentTrial: 0,
       trialStart: 0,
-      awaitingResponse: false
+      awaitingResponse: false,
+      practiceMode: true,
+      practiceIndex: 0,
+      practiceTrials: [
+        { direction: 'right', flankerDirection: 'right', congruent: true, explain: 'All arrows point right → answer is RIGHT.' },
+        { direction: 'left', flankerDirection: 'right', congruent: false, explain: 'The CENTER arrow points left. Ignore the surrounding arrows.' },
+        { direction: 'right', flankerDirection: 'left', congruent: false, explain: 'Center = RIGHT. The distractors point left — don\'t be fooled.' }
+      ]
     };
 
     render();
-    presentTrial();
+    presentPractice();
   }
 
   function generateTrials() {
@@ -106,6 +113,57 @@
     if (e.key === 'ArrowRight') { e.preventDefault(); handleResponse('right'); }
   }
 
+  // ===== PRACTICE =====
+  function presentPractice() {
+    if (state.practiceIndex >= state.practiceTrials.length) {
+      var stimEl = document.getElementById('flanker-stimulus');
+      var feedbackEl = document.getElementById('flanker-feedback');
+      var typeEl = document.getElementById('flanker-type');
+      if (typeEl) typeEl.textContent = '';
+      if (feedbackEl) feedbackEl.textContent = '';
+      if (stimEl) {
+        stimEl.innerHTML = '<div style="text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--kc-blackberry);margin-bottom:8px;">Got it!</div><div style="font-size:15px;color:var(--kc-text-secondary);">Now the real test begins.</div></div>';
+      }
+      state.practiceMode = false;
+      setTimeout(presentTrial, 1800);
+      return;
+    }
+
+    var trial = state.practiceTrials[state.practiceIndex];
+    var stimEl = document.getElementById('flanker-stimulus');
+    var progressEl = document.getElementById('flanker-progress');
+    var typeEl = document.getElementById('flanker-type');
+    var feedbackEl = document.getElementById('flanker-feedback');
+
+    if (typeEl) typeEl.textContent = 'PRACTICE';
+    if (progressEl) progressEl.textContent = 'Practice ' + (state.practiceIndex + 1) + ' of 3';
+    if (feedbackEl) feedbackEl.textContent = '';
+
+    state.awaitingResponse = false;
+    if (stimEl) {
+      stimEl.innerHTML = '<span style="color:var(--kc-text-light);">+</span>';
+      setTimeout(function() {
+        var flanker = ARROWS[trial.flankerDirection];
+        var center = ARROWS[trial.direction];
+        stimEl.textContent = flanker + flanker + ' ' + center + ' ' + flanker + flanker;
+        state.trialStart = performance.now();
+        state.awaitingResponse = true;
+      }, 300);
+    }
+  }
+
+  function handlePracticeResponse(dir) {
+    var trial = state.practiceTrials[state.practiceIndex];
+    var correct = dir === trial.direction;
+    var feedbackEl = document.getElementById('flanker-feedback');
+    if (feedbackEl) {
+      var prefix = correct ? '<span style="color:var(--kc-success);">✓ Correct!</span> ' : '<span style="color:var(--kc-error);">✗ Wrong.</span> ';
+      feedbackEl.innerHTML = prefix + '<span style="color:var(--kc-text-secondary);font-size:13px;">' + trial.explain + '</span>';
+    }
+    state.practiceIndex++;
+    setTimeout(presentPractice, 1800);
+  }
+
   function presentTrial() {
     if (state.currentTrial >= state.trials.length) { finishGame(); return; }
 
@@ -138,6 +196,8 @@
   function handleResponse(dir) {
     if (!state.awaitingResponse) return;
     state.awaitingResponse = false;
+
+    if (state.practiceMode) { handlePracticeResponse(dir); return; }
 
     var rt = performance.now() - state.trialStart;
     var trial = state.trials[state.currentTrial];

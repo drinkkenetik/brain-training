@@ -43,11 +43,18 @@
       results: [],
       currentTrial: 0,
       trialStart: 0,
-      awaitingResponse: false
+      awaitingResponse: false,
+      practiceMode: true,
+      practiceIndex: 0,
+      practiceTrials: [
+        { shape: 'circle', color: 'red', rule: 'shape', correctAnswer: 'circle', explain: 'Rule is SHAPE → the shape is a circle.' },
+        { shape: 'square', color: 'blue', rule: 'color', correctAnswer: 'blue', isSwitch: true, explain: 'Rule switched to COLOR → the color is blue.' },
+        { shape: 'triangle', color: 'green', rule: 'shape', correctAnswer: 'triangle', isSwitch: true, explain: 'Rule switched back to SHAPE → it\'s a triangle.' }
+      ]
     };
 
     render();
-    presentTrial();
+    presentPractice();
   }
 
   function generateTrials() {
@@ -101,6 +108,77 @@
         '<div id="ts-responses" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;"></div>' +
         '<div id="ts-feedback" style="height: 24px; font-size: 14px; font-weight: 700;"></div>' +
       '</div>';
+  }
+
+  // ===== PRACTICE =====
+  function presentPractice() {
+    if (state.practiceIndex >= state.practiceTrials.length) {
+      var stimEl = document.getElementById('ts-stimulus');
+      var feedbackEl = document.getElementById('ts-feedback');
+      var ruleEl = document.getElementById('ts-rule');
+      if (ruleEl) ruleEl.textContent = '';
+      if (feedbackEl) feedbackEl.textContent = '';
+      if (stimEl) {
+        stimEl.innerHTML = '<div style="text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--kc-blackberry);margin-bottom:8px;">You\'ve got it!</div><div style="font-size:15px;color:var(--kc-text-secondary);">Now the real test begins.</div></div>';
+      }
+      state.practiceMode = false;
+      setTimeout(presentTrial, 1800);
+      return;
+    }
+
+    var trial = state.practiceTrials[state.practiceIndex];
+    var progressEl = document.getElementById('ts-progress');
+    var ruleEl = document.getElementById('ts-rule');
+    var instrEl = document.getElementById('ts-instruction');
+    var stimEl = document.getElementById('ts-stimulus');
+    var responsesEl = document.getElementById('ts-responses');
+    var feedbackEl = document.getElementById('ts-feedback');
+
+    if (progressEl) progressEl.textContent = 'Practice ' + (state.practiceIndex + 1) + ' of 3';
+    if (ruleEl) ruleEl.textContent = 'PRACTICE';
+    if (instrEl) {
+      instrEl.textContent = 'Identify the ' + trial.rule.toUpperCase();
+      instrEl.style.background = trial.isSwitch ? 'rgba(251, 177, 27, 0.15)' : 'var(--kc-bg-panel)';
+    }
+    if (feedbackEl) feedbackEl.textContent = '';
+
+    state.awaitingResponse = false;
+    if (stimEl) stimEl.innerHTML = '<span style="color:var(--kc-text-light);font-size:48px;">+</span>';
+
+    setTimeout(function() {
+      if (stimEl) stimEl.innerHTML = drawShape(trial.shape, trial.color, 80);
+
+      var options = trial.rule === 'shape' ? SHAPES : COLORS;
+      if (responsesEl) {
+        responsesEl.innerHTML = '';
+        options.forEach(function(opt) {
+          var btn = document.createElement('button');
+          btn.className = 'kc-response-btn';
+          btn.setAttribute('data-answer', opt);
+          btn.style.padding = '14px 24px';
+          btn.style.minWidth = '80px';
+          if (trial.rule === 'color') btn.style.color = COLORS_MAP[opt] || '#000';
+          btn.textContent = opt.charAt(0).toUpperCase() + opt.slice(1);
+          btn.addEventListener('click', function() { handlePracticeResponse(opt); });
+          responsesEl.appendChild(btn);
+        });
+      }
+      state.awaitingResponse = true;
+    }, 300);
+  }
+
+  function handlePracticeResponse(answer) {
+    if (!state.awaitingResponse) return;
+    state.awaitingResponse = false;
+    var trial = state.practiceTrials[state.practiceIndex];
+    var correct = answer === trial.correctAnswer;
+    var feedbackEl = document.getElementById('ts-feedback');
+    if (feedbackEl) {
+      var prefix = correct ? '<span style="color:var(--kc-success);">✓ Correct!</span> ' : '<span style="color:var(--kc-error);">✗ Not quite.</span> ';
+      feedbackEl.innerHTML = prefix + '<span style="color:var(--kc-text-secondary);font-size:13px;">' + trial.explain + '</span>';
+    }
+    state.practiceIndex++;
+    setTimeout(presentPractice, 1800);
   }
 
   function presentTrial() {
@@ -160,6 +238,8 @@
   function handleResponse(answer) {
     if (!state.awaitingResponse) return;
     state.awaitingResponse = false;
+
+    if (state.practiceMode) { handlePracticeResponse(answer); return; }
 
     var rt = performance.now() - state.trialStart;
     var trial = state.trials[state.currentTrial];

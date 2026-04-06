@@ -44,6 +44,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: var(--kc-space-xs);">
       <span class="kc-points-earned" id="kc-topbar-points" style="font-size: 14px;">0 FP</span>
+      <button id="btn-settings" style="background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; color: var(--kc-text-muted);">⚙️</button>
     </div>
   </header>
 
@@ -253,6 +254,58 @@
       </div>
     </div>
 
+    <!-- === SCREEN: WEEKLY RECAP (Day 7, Section 5.4.2) === -->
+    <div id="screen-weekly-recap" class="kc-screen">
+      <div style="text-align: center; padding: var(--kc-space-md) 0;">
+        <div class="kc-eyebrow kc-mb-xs" style="color: var(--kc-pineapple);">WEEK 1 COMPLETE</div>
+        <h2 class="kc-heading-md kc-mb-lg">Your First Week in Review</h2>
+
+        <!-- Brain Score trend -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-md);">
+          <div class="kc-eyebrow kc-mb-sm">Brain Score Trend</div>
+          <div id="recap-trend" style="min-height: 120px;"></div>
+        </div>
+
+        <!-- Strongest / Weakest domains -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--kc-space-sm); margin-bottom: var(--kc-space-md);">
+          <div class="kc-card" style="padding: var(--kc-space-md); text-align: center;">
+            <div class="kc-caption kc-mb-xs">Strongest</div>
+            <div id="recap-strongest" style="font-size: 18px; font-weight: 700;"></div>
+          </div>
+          <div class="kc-card" style="padding: var(--kc-space-md); text-align: center;">
+            <div class="kc-caption kc-mb-xs">Room to Grow</div>
+            <div id="recap-weakest" style="font-size: 18px; font-weight: 700;"></div>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--kc-space-xs); margin-bottom: var(--kc-space-md);">
+          <div class="kc-card" style="padding: var(--kc-space-sm); text-align: center;">
+            <div id="recap-sessions" style="font-family: var(--kc-font-heading); font-size: 28px; font-weight: 700;">7</div>
+            <div class="kc-caption">sessions</div>
+          </div>
+          <div class="kc-card" style="padding: var(--kc-space-sm); text-align: center;">
+            <div id="recap-points" style="font-family: var(--kc-font-heading); font-size: 28px; font-weight: 700; color: var(--kc-pineapple);">0</div>
+            <div class="kc-caption">Fuel Points</div>
+          </div>
+          <div class="kc-card" style="padding: var(--kc-space-sm); text-align: center;">
+            <div id="recap-streak" style="font-family: var(--kc-font-heading); font-size: 28px; font-weight: 700;">7</div>
+            <div class="kc-caption">day streak</div>
+          </div>
+        </div>
+
+        <!-- Share prompt -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-md);">
+          <div style="font-size: 16px; font-weight: 500; margin-bottom: var(--kc-space-sm);">Share your Week 1 results</div>
+          <button id="btn-recap-share" class="kc-btn kc-btn--secondary" style="padding: 12px 32px;">📤 Share Brain Score</button>
+        </div>
+
+        <button id="btn-recap-done" class="kc-btn kc-btn--primary kc-btn--full" style="font-size: 18px; padding: 18px;">
+          Keep Training
+        </button>
+      </div>
+    </div>
+
     <!-- === SCREEN: EMAIL GATE (Section 11.6.2: after baseline) === -->
     <div id="screen-email-gate" class="kc-screen">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center;">
@@ -286,6 +339,60 @@
         <button id="btn-return-start" class="kc-btn kc-btn--primary" style="padding: 18px 56px; font-size: 18px;">
           Pick up where you left off
         </button>
+      </div>
+    </div>
+
+    <!-- === SCREEN: SETTINGS === -->
+    <div id="screen-settings" class="kc-screen">
+      <div style="padding: var(--kc-space-md) 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--kc-space-lg);">
+          <h2 class="kc-heading-md">Settings</h2>
+          <button id="btn-settings-back" class="kc-btn kc-btn--ghost" style="padding: 8px 16px;">← Back</button>
+        </div>
+
+        <!-- Warm-up toggle (Section 5.6.1) -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-md);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 16px; font-weight: 500;">Warm-up exercise</div>
+              <div class="kc-caption">60-second Speed Match before each session</div>
+            </div>
+            <label style="position: relative; width: 48px; height: 28px; cursor: pointer;">
+              <input type="checkbox" id="setting-warmup" style="opacity: 0; width: 0; height: 0;">
+              <span id="warmup-toggle" style="position: absolute; inset: 0; background: var(--kc-border); border-radius: 14px; transition: 0.2s;">
+                <span style="position: absolute; left: 2px; top: 2px; width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Consumption protocol opt-in (Section 9.1) -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-md);">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 16px; font-weight: 500;">Kenetik consumption log</div>
+              <div class="kc-caption">Track daily servings and earn bonus Fuel Points</div>
+            </div>
+            <label style="position: relative; width: 48px; height: 28px; cursor: pointer;">
+              <input type="checkbox" id="setting-consumption" style="opacity: 0; width: 0; height: 0;">
+              <span id="consumption-toggle" style="position: absolute; inset: 0; background: var(--kc-border); border-radius: 14px; transition: 0.2s;">
+                <span style="position: absolute; left: 2px; top: 2px; width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Account info -->
+        <div class="kc-card kc-mb-md" style="padding: var(--kc-space-md);">
+          <div class="kc-eyebrow kc-mb-sm">Account</div>
+          <div id="settings-identity" class="kc-caption">Anonymous</div>
+          <div id="settings-level" class="kc-caption kc-mt-xs"></div>
+        </div>
+
+        <!-- Clear data -->
+        <div style="text-align: center; margin-top: var(--kc-space-xl);">
+          <button id="btn-clear-data" class="kc-btn kc-btn--ghost" style="color: var(--kc-error); font-size: 14px;">Clear all data</button>
+        </div>
       </div>
     </div>
 

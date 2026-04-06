@@ -326,9 +326,18 @@
       return;
     }
 
-    // Day 4+: algorithm selects (Day 4 gets 1 curated)
+    // Day 4+: algorithm selects
     var available = getAvailableExercises(userState.level || 1, day);
     var selected = algorithmSelect(available, scores, EXERCISES_PER_SESSION);
+
+    // Weekly challenge exercise override (Section 5.2)
+    if (window.KCChallenges) {
+      var challengeEx = window.KCChallenges.getChallengeExercise();
+      if (challengeEx && selected.indexOf(challengeEx) === -1 && available.indexOf(challengeEx) !== -1) {
+        selected[selected.length - 1] = challengeEx; // Replace last exercise
+      }
+    }
+
     callback(selected);
   }
 
@@ -428,7 +437,7 @@
   }
 
   // ===== SCREEN MANAGEMENT =====
-  var allScreens = ['arrival', 'dashboard', 'exercise', 'instructions', 'countdown', 'results', 'email-gate', 'return'];
+  var allScreens = ['arrival', 'dashboard', 'exercise', 'instructions', 'countdown', 'results', 'email-gate', 'return', 'weekly-recap', 'settings'];
 
   // Exercise instructions — shown before each exercise so users know what to do
   var EXERCISE_INSTRUCTIONS = {
@@ -1256,9 +1265,16 @@
     var resultsDoneBtn = document.getElementById('btn-results-done');
     if (resultsDoneBtn) {
       resultsDoneBtn.addEventListener('click', function() {
-        // Check if first session + anonymous → email gate
         dbGet('state', 'user', function(userState) {
           userState = userState || {};
+
+          // Day 7: show weekly recap (Section 5.4.2)
+          if (engineState.sessionDay === 7) {
+            showWeeklyRecap(userState);
+            return;
+          }
+
+          // First session + anonymous → email gate
           if (userState.identityState === 'anonymous' && engineState.isFirstVisit) {
             showScreen('email-gate');
           } else {
@@ -1321,6 +1337,100 @@
     }
   }
 
+    // Settings
+    var settingsBtn = document.getElementById('btn-settings');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', function() {
+        showSettings();
+      });
+    }
+
+    var settingsBackBtn = document.getElementById('btn-settings-back');
+    if (settingsBackBtn) {
+      settingsBackBtn.addEventListener('click', function() {
+        setTimeout(goToDashboard, 100);
+      });
+    }
+
+    var clearDataBtn = document.getElementById('btn-clear-data');
+    if (clearDataBtn) {
+      clearDataBtn.addEventListener('click', function() {
+        if (confirm('This will erase all your training data, scores, and progress. Are you sure?')) {
+          indexedDB.deleteDatabase('kenetik_circuit');
+          localStorage.clear();
+          window.location.reload();
+        }
+      });
+    }
+
+    // Toggle styling for settings switches
+    ['warmup', 'consumption'].forEach(function(key) {
+      var checkbox = document.getElementById('setting-' + key);
+      var toggle = document.getElementById(key + '-toggle');
+      if (checkbox && toggle) {
+        checkbox.addEventListener('change', function() {
+          var inner = toggle.querySelector('span');
+          if (checkbox.checked) {
+            toggle.style.background = 'var(--kc-strawberry)';
+            if (inner) inner.style.left = '22px';
+          } else {
+            toggle.style.background = 'var(--kc-border)';
+            if (inner) inner.style.left = '2px';
+          }
+          // Save setting
+          dbPut('state', { key: 'setting_' + key, enabled: checkbox.checked });
+          if (key === 'consumption' && window.KCConsumption) {
+            if (checkbox.checked) window.KCConsumption.optIn();
+          }
+        });
+      }
+    });
+  }
+
+  function showSettings() {
+    showScreen('settings');
+    var identity = window.KCIdentity ? window.KCIdentity.getIdentity() : {};
+    var identityEl = document.getElementById('settings-identity');
+    if (identityEl) {
+      if (identity.email) {
+        identityEl.textContent = identity.email + ' (' + identity.state + ')';
+      } else {
+        identityEl.textContent = 'Anonymous — save your email to keep progress';
+      }
+    }
+    var levelEl = document.getElementById('settings-level');
+    if (levelEl && window.KCGamification) {
+      var lvl = window.KCGamification.getLevel();
+      levelEl.textContent = 'Level ' + lvl + ': ' + window.KCGamification.getLevelTitle(lvl);
+    }
+
+    // Load saved settings
+    dbGet('state', 'setting_warmup', function(data) {
+      var cb = document.getElementById('setting-warmup');
+      var toggle = document.getElementById('warmup-toggle');
+      if (cb && data) {
+        cb.checked = data.enabled;
+        if (toggle) {
+          var inner = toggle.querySelector('span');
+          toggle.style.background = data.enabled ? 'var(--kc-strawberry)' : 'var(--kc-border)';
+          if (inner) inner.style.left = data.enabled ? '22px' : '2px';
+        }
+      }
+    });
+    dbGet('state', 'setting_consumption', function(data) {
+      var cb = document.getElementById('setting-consumption');
+      var toggle = document.getElementById('consumption-toggle');
+      if (cb && data) {
+        cb.checked = data.enabled;
+        if (toggle) {
+          var inner = toggle.querySelector('span');
+          toggle.style.background = data.enabled ? 'var(--kc-strawberry)' : 'var(--kc-border)';
+          if (inner) inner.style.left = data.enabled ? '22px' : '2px';
+        }
+      }
+    });
+  }
+
   function goToDashboard() {
     dbGet('state', 'user', function(userState) {
       userState = userState || { key: 'user', sessionDay: 1, streak: 0, totalPoints: 0, level: 1 };
@@ -1334,6 +1444,74 @@
         });
       });
     });
+  }
+
+  // ===== WEEKLY RECAP (Day 7, Section 5.4.2) =====
+  function showWeeklyRecap(userState) {
+    showScreen('weekly-recap');
+
+    var totalPoints = window.KCGamification ? window.KCGamification.getTotalPoints() : 0;
+    var streak = window.KCGamification ? window.KCGamification.getStreak() : 0;
+
+    var pointsEl = document.getElementById('recap-points');
+    var streakEl = document.getElementById('recap-streak');
+    if (pointsEl) pointsEl.textContent = totalPoints;
+    if (streakEl) streakEl.textContent = streak;
+
+    // Find strongest and weakest domains
+    dbGetAll('scores', function(allScores) {
+      computeBrainScore(allScores, function(brainData) {
+        var domains = brainData.domains || {};
+        var domainLabels = {
+          'processing-speed': 'Processing Speed', 'working-memory': 'Working Memory',
+          'executive-function': 'Executive Function', 'cognitive-flexibility': 'Cognitive Flexibility',
+          'attention': 'Attention', 'spatial-language': 'Spatial / Language'
+        };
+
+        var strongest = null, weakest = null;
+        var maxScore = -1, minScore = 101;
+        Object.keys(domains).forEach(function(key) {
+          if (domains[key] > maxScore) { maxScore = domains[key]; strongest = key; }
+          if (domains[key] < minScore) { minScore = domains[key]; weakest = key; }
+        });
+
+        var strongestEl = document.getElementById('recap-strongest');
+        var weakestEl = document.getElementById('recap-weakest');
+        if (strongestEl) strongestEl.textContent = strongest ? domainLabels[strongest] || strongest : '—';
+        if (weakestEl) weakestEl.textContent = weakest ? domainLabels[weakest] || weakest : '—';
+
+        // Render domain bars as trend
+        if (window.KCCharts) {
+          window.KCCharts.renderDomainBars('recap-trend', domains);
+        }
+      });
+    });
+
+    // Wire buttons
+    var shareBtn = document.getElementById('btn-recap-share');
+    if (shareBtn) {
+      var newShareBtn = shareBtn.cloneNode(true);
+      shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+      newShareBtn.addEventListener('click', function() {
+        dbGetAll('scores', function(allScores) {
+          computeBrainScore(allScores, function(brainData) {
+            if (window.KCShareCard) window.KCShareCard.shareCard(brainData, userState);
+          });
+        });
+      });
+    }
+
+    var doneBtn = document.getElementById('btn-recap-done');
+    if (doneBtn) {
+      var newDoneBtn = doneBtn.cloneNode(true);
+      doneBtn.parentNode.replaceChild(newDoneBtn, doneBtn);
+      newDoneBtn.addEventListener('click', function() {
+        setTimeout(goToDashboard, 300);
+      });
+    }
+
+    // Confetti for week 1 completion
+    setTimeout(confettiBurst, 500);
   }
 
   // ===== CONFETTI (Section 3.8: brand colors only, subtle burst) =====
