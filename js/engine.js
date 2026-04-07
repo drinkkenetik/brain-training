@@ -377,7 +377,7 @@
     var usedDomains = {};
     for (var i = 0; i < scored.length && selected.length < count; i++) {
       var domain = EXERCISE_REGISTRY[scored[i].exercise].domain;
-      if (!usedDomains[domain] || selected.length >= count - 1) {
+      if (!usedDomains[domain]) {
         selected.push(scored[i].exercise);
         usedDomains[domain] = true;
       }

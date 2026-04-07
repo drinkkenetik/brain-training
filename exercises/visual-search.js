@@ -21,9 +21,9 @@
   var SHAPE_COLORS = ['#E03D1A', '#269DD2', '#2D9D4E', '#D01483', '#F06925'];
 
   var DIFFICULTY = {
-    1: { trials: 12, distractorStart: 6, distractorInc: 1, shapeTypes: 2, colorTypes: 1 },
-    2: { trials: 14, distractorStart: 8, distractorInc: 1, shapeTypes: 3, colorTypes: 1 },
-    3: { trials: 16, distractorStart: 10, distractorInc: 2, shapeTypes: 3, colorTypes: 2 },
+    1: { trials: 12, distractorStart: 6, distractorInc: 1, shapeTypes: 2, colorTypes: 2 },
+    2: { trials: 14, distractorStart: 8, distractorInc: 1, shapeTypes: 3, colorTypes: 2 },
+    3: { trials: 16, distractorStart: 10, distractorInc: 2, shapeTypes: 3, colorTypes: 3 },
     4: { trials: 18, distractorStart: 12, distractorInc: 2, shapeTypes: 4, colorTypes: 3 },
     5: { trials: 20, distractorStart: 15, distractorInc: 3, shapeTypes: 5, colorTypes: 4 }
   };
@@ -45,7 +45,9 @@
       currentTrial: 0,
       trialStart: 0,
       targetShape: null,
-      targetColor: null
+      targetColor: null,
+      practiceMode: true,
+      practiceIndex: 0
     };
 
     // Pick a target for this session
@@ -54,7 +56,7 @@
 
     generateTrials();
     render();
-    presentTrial();
+    presentPractice();
   }
 
   function generateTrials() {
@@ -75,7 +77,7 @@
               state.targetShape.draw(state.targetColor) +
             '</div>' +
           '</div>' +
-          '<span class="kc-caption" id="vs-progress">1 / ' + config.trials + '</span>' +
+          '<span class="kc-caption" id="vs-progress">Practice</span>' +
         '</div>' +
         '<div class="kc-progress-bar" style="margin-bottom: 16px;">' +
           '<div class="kc-progress-bar__fill" id="vs-bar" style="width: 0%;"></div>' +
@@ -86,6 +88,72 @@
       '</div>';
   }
 
+  // ===== PRACTICE =====
+  function presentPractice() {
+    if (state.practiceIndex >= 2) {
+      var field = document.getElementById('vs-field');
+      var feedbackEl = document.getElementById('vs-feedback');
+      if (feedbackEl) feedbackEl.textContent = '';
+      if (field) {
+        field.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;"><div style="text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--kc-blackberry);margin-bottom:8px;">You\'ve got it!</div><div style="font-size:15px;color:var(--kc-text-secondary);">Find the red circle as fast as you can.</div></div></div>';
+      }
+      state.practiceMode = false;
+      setTimeout(presentTrial, 1800);
+      return;
+    }
+
+    var field = document.getElementById('vs-field');
+    var progressEl = document.getElementById('vs-progress');
+    var feedbackEl = document.getElementById('vs-feedback');
+
+    if (progressEl) progressEl.textContent = 'Practice ' + (state.practiceIndex + 1) + ' of 2';
+    if (feedbackEl) feedbackEl.textContent = '';
+    if (!field) return;
+
+    field.innerHTML = '';
+
+    // Simple practice: fewer distractors (3-4)
+    var distractorCount = 3 + state.practiceIndex;
+    var positions = generatePositions(distractorCount + 1, field.offsetWidth, field.offsetHeight);
+    var targetIdx = Math.floor(Math.random() * positions.length);
+    var availableShapes = SHAPES.slice(1, 3);
+    var availableColors = SHAPE_COLORS.slice(1, 3);
+
+    positions.forEach(function(pos, i) {
+      var el = document.createElement('div');
+      el.style.cssText = 'position:absolute;left:' + pos.x + 'px;top:' + pos.y + 'px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;cursor:pointer;';
+
+      if (i === targetIdx) {
+        el.innerHTML = state.targetShape.draw(state.targetColor);
+        el.setAttribute('data-target', 'true');
+      } else {
+        var shape = availableShapes[Math.floor(Math.random() * availableShapes.length)];
+        var color = availableColors[Math.floor(Math.random() * availableColors.length)];
+        el.innerHTML = shape.draw(color);
+      }
+
+      el.addEventListener('click', function() {
+        handlePracticeClick(el.getAttribute('data-target') === 'true');
+      });
+
+      field.appendChild(el);
+    });
+  }
+
+  function handlePracticeClick(isTarget) {
+    var feedbackEl = document.getElementById('vs-feedback');
+    if (feedbackEl) {
+      if (isTarget) {
+        feedbackEl.innerHTML = '<span style="color:var(--kc-success);">✓ Correct!</span> <span style="color:var(--kc-text-secondary);font-size:13px;">That\'s the red circle.</span>';
+        state.practiceIndex++;
+        setTimeout(presentPractice, 1200);
+      } else {
+        feedbackEl.innerHTML = '<span style="color:var(--kc-error);">✗ Not quite.</span> <span style="color:var(--kc-text-secondary);font-size:13px;">Look for the red circle.</span>';
+      }
+    }
+  }
+
+  // ===== REAL TRIALS =====
   function presentTrial() {
     if (state.currentTrial >= state.trials.length) { finishGame(); return; }
 
