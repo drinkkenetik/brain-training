@@ -17,7 +17,7 @@
   var ACCURACY_THRESHOLD_LOWER = 0.65;
 
   // Sigmoid normalization defaults (Section 5.3.2)
-  var SIGMOID_K = 0.02;
+  var SIGMOID_K = 0.005;
 
   // Exercise midpoints (population medians, ms) — seeded from Brandon's baselines
   var EXERCISE_MIDPOINTS = {
@@ -27,6 +27,7 @@
     'speed-match': 600,
     'visual-search': 800,
     'go-no-go': 350,
+    'task-switching': 900,
     'trail-connect': 700,
     'number-sense': 900
   };
@@ -47,8 +48,8 @@
     dsst: { name: 'Digit Symbol', domain: 'processing-speed', scoreType: 'rt', icon: '⚡', unlockLevel: 1 },
     flanker: { name: 'Flanker Task', domain: 'executive-function', scoreType: 'rt', icon: '➡️', unlockLevel: 1 },
     nback: { name: 'N-Back', domain: 'working-memory', scoreType: 'accuracy', icon: '🧠', unlockLevel: 1 },
-    'task-switching': { name: 'Task Switching', domain: 'cognitive-flexibility', scoreType: 'rt', icon: '🔄', unlockLevel: 1 },
-    'speed-match': { name: 'Speed Match', domain: 'processing-speed', scoreType: 'rt', icon: '⚡', unlockLevel: 2 },
+    'task-switching': { name: 'Task Switching', domain: 'cognitive-flexibility', scoreType: 'mixed', icon: '🔄', unlockLevel: 1 },
+    'speed-match': { name: 'Speed Match', domain: 'processing-speed', scoreType: 'mixed', icon: '⚡', unlockLevel: 2 },
     'visual-search': { name: 'Visual Search', domain: 'attention', scoreType: 'rt', icon: '🔍', unlockLevel: 2 },
     'pattern-matrix': { name: 'Pattern Matrix', domain: 'spatial-language', scoreType: 'accuracy', icon: '🧩', unlockLevel: 3 },
     'sequence-memory': { name: 'Sequence Memory', domain: 'working-memory', scoreType: 'accuracy', icon: '🔢', unlockLevel: 3 },
