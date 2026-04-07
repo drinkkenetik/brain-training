@@ -18,6 +18,8 @@
     5: { nLevel: 3, totalTrials: 28, matchRatio: 0.4, stimDuration: 1800 }
   };
 
+  var ISI_DURATION = 300; // Inter-stimulus interval: brief blank between trials
+
   var LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M'];
 
   var state, config, container, onComplete, trialTimer;
@@ -35,6 +37,7 @@
       results: [],
       currentTrial: 0,
       responded: false,
+      betweenTrials: false,
       practiceMode: true,
       practiceIndex: 0,
       practiceSequence: []
@@ -122,9 +125,22 @@
   }
 
   function keyHandler(e) {
-    if (state.responded) return;
+    if (state.responded || state.betweenTrials) return;
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); handleResponse(true); }
     if (e.key === 'n' || e.key === 'N') { e.preventDefault(); handleResponse(false); }
+  }
+
+  // Show a brief blank gap between trials so repeated letters are visually distinct
+  function showISI(callback) {
+    state.betweenTrials = true;
+    var stimEl = document.getElementById('nback-stimulus');
+    if (stimEl) {
+      stimEl.innerHTML = '<span style="font-family: var(--kc-font-heading); font-size: 48px; color: var(--kc-text-light);">+</span>';
+    }
+    setTimeout(function() {
+      state.betweenTrials = false;
+      callback();
+    }, ISI_DURATION);
   }
 
   // ===== PRACTICE MODE =====
@@ -143,7 +159,7 @@
         '</div>';
       }
       state.practiceMode = false;
-      setTimeout(function() { presentTrial(); }, 1800);
+      setTimeout(function() { showISI(presentTrial); }, 1800);
       return;
     }
 
@@ -165,7 +181,9 @@
         feedbackEl.innerHTML = '<span style="color: var(--kc-text-secondary);">' + trial.explain + '</span>';
       }
       state.practiceIndex++;
-      setTimeout(presentPractice, 2200);
+      setTimeout(function() {
+        showISI(presentPractice);
+      }, 2200);
       return;
     }
 
@@ -185,7 +203,9 @@
     }
 
     state.practiceIndex++;
-    setTimeout(presentPractice, 2200);
+    setTimeout(function() {
+      showISI(presentPractice);
+    }, 2200);
   }
 
   function presentTrial() {
@@ -218,13 +238,13 @@
           correct: !trial.isMatch // Not responding is correct only for non-matches
         });
         state.currentTrial++;
-        presentTrial();
+        showISI(presentTrial);
       }
     }, config.stimDuration);
   }
 
   function handleResponse(saidMatch) {
-    if (state.responded) return;
+    if (state.responded || state.betweenTrials) return;
     state.responded = true;
 
     // Route to practice handler if in practice mode
@@ -253,7 +273,9 @@
     }
 
     state.currentTrial++;
-    setTimeout(presentTrial, 500);
+    setTimeout(function() {
+      showISI(presentTrial);
+    }, 500);
   }
 
   function finishGame() {

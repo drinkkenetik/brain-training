@@ -13,13 +13,15 @@
   // Symbol set
   var SYMBOLS = ['◯', '△', '□', '◇', '✕', '⬟', '▽', '☆', '⬡'];
 
+  var ISI_DURATION = 250; // Brief blank between trials
+
   // Adaptive difficulty (5 levels)
   var DIFFICULTY = {
-    1: { duration: 90, symbolCount: 6 },
-    2: { duration: 90, symbolCount: 7 },
-    3: { duration: 90, symbolCount: 8 },
-    4: { duration: 75, symbolCount: 9 },
-    5: { duration: 60, symbolCount: 9 }
+    1: { duration: 45, symbolCount: 6 },
+    2: { duration: 45, symbolCount: 7 },
+    3: { duration: 45, symbolCount: 8 },
+    4: { duration: 40, symbolCount: 9 },
+    5: { duration: 35, symbolCount: 9 }
   };
 
   var state, config, container, onComplete, normalizeRT, timerInterval;
@@ -40,7 +42,8 @@
       timeLeft: config.duration,
       score: 0,
       trialStart: 0,
-      active: false
+      active: false,
+      betweenTrials: false
     };
 
     // Generate random symbol-digit mapping
@@ -129,6 +132,17 @@
     }, 1000);
   }
 
+  // Show brief blank between trials so repeated digits are visually distinct
+  function showISI(callback) {
+    state.betweenTrials = true;
+    var digitEl = document.getElementById('dsst-digit');
+    if (digitEl) digitEl.textContent = '·';
+    setTimeout(function() {
+      state.betweenTrials = false;
+      callback();
+    }, ISI_DURATION);
+  }
+
   function nextDigit() {
     state.currentDigit = Math.floor(Math.random() * config.symbolCount) + 1;
     var digitEl = document.getElementById('dsst-digit');
@@ -137,7 +151,7 @@
   }
 
   function handleResponse(selectedSymbol) {
-    if (!state.active) return;
+    if (!state.active || state.betweenTrials) return;
 
     var correctSymbol = state.symbolMap[state.currentDigit];
     var correct = selectedSymbol === correctSymbol;
@@ -162,7 +176,7 @@
             var scoreEl = document.getElementById('dsst-score');
             if (scoreEl) scoreEl.textContent = '0';
             startTimer();
-            nextDigit();
+            showISI(nextDigit);
           }, 1200);
           return;
         }
@@ -173,7 +187,7 @@
         }
       }
       if (timerEl) timerEl.textContent = 'PRACTICE';
-      setTimeout(function() { if (feedbackEl) feedbackEl.textContent = ''; nextDigit(); }, 1000);
+      setTimeout(function() { if (feedbackEl) feedbackEl.textContent = ''; showISI(nextDigit); }, 1000);
       return;
     }
 
@@ -202,7 +216,7 @@
       setTimeout(function() { if (feedbackEl) feedbackEl.textContent = ''; }, 400);
     }
 
-    nextDigit();
+    showISI(nextDigit);
   }
 
   function finishGame() {
